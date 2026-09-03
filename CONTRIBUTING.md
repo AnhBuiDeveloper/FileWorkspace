@@ -10,6 +10,7 @@ Contributions to this self-hosted file manager are welcome. Before opening a pul
 - Keep changes focused and explain the user-visible impact in the pull request.
 - For UI changes, follow [UI-STANDARDS.md](UI-STANDARDS.md) and include its review checklist in the pull request.
 - Follow [PROJECT-MEMORY.md](PROJECT-MEMORY.md) for architecture boundaries and SOLID, KISS, DRY, and YAGNI decisions.
+- The default branch is protected. Create a topic branch, open a pull request, resolve every conversation, and merge only after the `dotnet-tests` and `playwright` checks pass.
 
 ### Developer Certificate of Origin
 
@@ -39,6 +40,7 @@ Hoan nghênh đóng góp cho file manager tự host này. Trước khi mở pull
 - Giữ thay đổi tập trung và mô tả ảnh hưởng với người dùng trong pull request.
 - Với thay đổi UI, tuân thủ [UI-STANDARDS.md](UI-STANDARDS.md) và đưa checklist review của tài liệu này vào pull request.
 - Tuân thủ [PROJECT-MEMORY.md](PROJECT-MEMORY.md) về boundary kiến trúc và các quyết định SOLID, KISS, DRY, YAGNI.
+- Default branch đã được bảo vệ. Hãy tạo topic branch, mở pull request, giải quyết toàn bộ conversation và chỉ merge khi `dotnet-tests` cùng `playwright` pass.
 
 ### Developer Certificate of Origin
 
