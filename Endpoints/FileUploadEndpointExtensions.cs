@@ -1,0 +1,82 @@
+using FileUpload.Models;
+using FileUpload.Services;
+
+namespace FileUpload.Endpoints;
+
+public static class FileUploadEndpointExtensions
+{
+    public static IEndpointRouteBuilder MapFileUploadEndpoints(this IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapPost("/api/uploads", async (HttpContext context, FileManagerService files, UploadTokenValidator token) =>
+        {
+            if (!IsAuthorized(context, token)) return Results.Unauthorized();
+            if (!long.TryParse(context.Request.Headers["X-File-Size"], out var size)) return Error("Dung lượng file không hợp lệ.", StatusCodes.Status400BadRequest);
+            try
+            {
+                var result = await files.StartUploadAsync(context.Request.Headers["X-File-Name"].ToString(), context.Request.Headers["X-Target-Folder"].ToString(), size, context.RequestAborted);
+                return Results.Ok(result);
+            }
+            catch (FileManagerException exception) { return Error(exception); }
+        });
+
+        endpoints.MapPut("/api/uploads/{uploadId}/chunks/{chunkIndex:int}", async (HttpContext context, string uploadId, int chunkIndex, FileManagerService files, UploadTokenValidator token) =>
+        {
+            if (!IsAuthorized(context, token)) return Results.Unauthorized();
+            try
+            {
+                var result = await files.WriteChunkAsync(uploadId, chunkIndex, context.Request.ContentLength, context.Request.Body, context.RequestAborted);
+                return Results.Ok(result);
+            }
+            catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested) { return Results.StatusCode(StatusCodes.Status499ClientClosedRequest); }
+            catch (FileManagerException exception) { return Error(exception); }
+        });
+
+        endpoints.MapDelete("/api/uploads/{uploadId}", async (HttpContext context, string uploadId, FileManagerService files, UploadTokenValidator token) =>
+        {
+            if (!IsAuthorized(context, token)) return Results.Unauthorized();
+            await files.CancelUploadAsync(uploadId);
+            return Results.NoContent();
+        });
+
+        endpoints.MapGet("/api/files", (HttpContext context, FileManagerService files, UploadTokenValidator token) =>
+        {
+            if (!IsAuthorized(context, token)) return Results.Unauthorized();
+            try { return Results.Ok(files.List(context.Request.Query["path"].ToString())); }
+            catch (FileManagerException exception) { return Error(exception); }
+        });
+
+        endpoints.MapPost("/api/files/download", async (HttpContext context, FileManagerService files, UploadTokenValidator token) =>
+        {
+            var form = await context.Request.ReadFormAsync(context.RequestAborted);
+            if (!token.Matches(form["token"].ToString())) return Results.Unauthorized();
+            try
+            {
+                var download = files.GetDownload(form["path"].ToString());
+                return Results.File(download.AbsolutePath, "application/octet-stream", fileDownloadName: download.FileName, enableRangeProcessing: true);
+            }
+            catch (FileManagerException exception) { return Error(exception); }
+        });
+
+        endpoints.MapPost("/api/folders", async (HttpContext context, FileManagerService files, UploadTokenValidator token) =>
+        {
+            if (!IsAuthorized(context, token)) return Results.Unauthorized();
+            var request = await context.Request.ReadFromJsonAsync<CreateFolderRequest>(cancellationToken: context.RequestAborted);
+            if (request is null) return Error("Tên hoặc đường dẫn thư mục không hợp lệ.", StatusCodes.Status400BadRequest);
+            try
+            {
+                files.CreateFolder(request);
+                var path = string.IsNullOrEmpty(request.ParentPath) ? request.Name : $"{request.ParentPath}/{request.Name}";
+                return Results.Created($"/api/files?path={Uri.EscapeDataString(path)}", new { path, name = request.Name });
+            }
+            catch (FileManagerException exception) { return Error(exception); }
+        });
+
+        return endpoints;
+    }
+
+    private static bool IsAuthorized(HttpContext context, UploadTokenValidator token) =>
+        token.Matches(context.Request.Headers["X-Upload-Token"].ToString());
+
+    private static IResult Error(FileManagerException exception) => Error(exception.Message, exception.StatusCode);
+    private static IResult Error(string message, int statusCode) => Results.Json(new ErrorResponse(message), statusCode: statusCode);
+}

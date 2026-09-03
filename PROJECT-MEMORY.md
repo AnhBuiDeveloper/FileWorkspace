@@ -1,0 +1,63 @@
+# Project memory / Bộ nhớ dự án
+
+This document is the durable engineering context for File Upload. Read it before changing application behavior, API contracts, storage, or user interface.
+
+## English
+
+### Engineering principles
+
+- **SOLID:** give each component one clear responsibility. Keep HTTP concerns in endpoints, application/file-system behavior in services, and request/response shapes in models.
+- **KISS:** choose the smallest understandable solution that satisfies the current requirement. Prefer standard ASP.NET Core and browser features over new dependencies.
+- **DRY:** centralize repeated validation, token checks, error mapping, path handling, and UI strings. Do not duplicate business rules across endpoints or client code.
+- **YAGNI:** do not add roles, databases, queues, cloud integrations, abstractions, configuration options, or extension points until a concrete accepted requirement needs them.
+
+### Current architecture
+
+| Area | Responsibility |
+| --- | --- |
+| Program.cs | Application composition, middleware, and dependency registration only. |
+| Configuration/ | Local development environment-file loading. |
+| Endpoints/ | HTTP routes, authentication boundary, request parsing, and HTTP responses. |
+| Services/UploadTokenValidator | Constant-time upload-token comparison. |
+| Services/FileManagerService | Upload sessions/chunks, safe paths, folders, file listing, downloads, and disk persistence. |
+| Models/ | API request/response contracts and upload protocol constants. |
+| wwwroot/ | Browser-only presentation and interaction. |
+
+### Rules for future changes
+
+1. Preserve token protection for every file, folder, upload, and download operation.
+2. Treat every client-supplied path or filename as untrusted. Resolve paths only through the file manager service.
+3. Keep incomplete uploads hidden and never serve Upload/ as static files.
+4. Keep API changes backward-compatible unless a versioned breaking change is explicitly approved.
+5. Follow [UI-STANDARDS.md](UI-STANDARDS.md) for every browser-facing change.
+6. Build and run the relevant syntax/tests before committing; update docs when behavior or configuration changes.
+
+## Tiếng Việt
+
+### Nguyên tắc kỹ thuật
+
+- **SOLID:** mỗi component có một trách nhiệm rõ ràng. HTTP ở endpoint, nghiệp vụ/file-system ở service, request/response ở model.
+- **KISS:** chọn giải pháp nhỏ nhất, dễ hiểu nhất đáp ứng yêu cầu hiện tại. Ưu tiên tính năng chuẩn của ASP.NET Core và browser thay vì thêm dependency.
+- **DRY:** tập trung validation, token check, error mapping, path handling và UI string. Không lặp business rule ở endpoint hoặc client.
+- **YAGNI:** không thêm role, database, queue, cloud integration, abstraction, option cấu hình hoặc extension point khi chưa có yêu cầu cụ thể được chấp thuận.
+
+### Kiến trúc hiện tại
+
+| Khu vực | Trách nhiệm |
+| --- | --- |
+| Program.cs | Chỉ composition ứng dụng, middleware và đăng ký dependency. |
+| Configuration/ | Nạp file môi trường local. |
+| Endpoints/ | HTTP route, ranh giới xác thực, parse request và HTTP response. |
+| Services/UploadTokenValidator | So sánh upload token theo constant-time. |
+| Services/FileManagerService | Upload session/chunk, path an toàn, folder, list file, download và ghi ổ đĩa. |
+| Models/ | Contract request/response API và hằng số upload protocol. |
+| wwwroot/ | Presentation và interaction chỉ chạy trên browser. |
+
+### Quy tắc cho thay đổi sau này
+
+1. Giữ token protection cho mọi thao tác file, folder, upload và download.
+2. Coi mọi path/tên file từ client là không tin cậy. Chỉ resolve path qua file manager service.
+3. Giữ upload chưa hoàn tất ở trạng thái ẩn và không bao giờ serve Upload/ như static file.
+4. Giữ API backward-compatible trừ khi breaking change có version được phê duyệt rõ ràng.
+5. Tuân thủ [UI-STANDARDS.md](UI-STANDARDS.md) với mọi thay đổi browser-facing.
+6. Build và chạy syntax/test phù hợp trước khi commit; cập nhật docs khi behavior hoặc config thay đổi.

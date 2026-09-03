@@ -9,6 +9,7 @@ Contributions are welcome. Before opening a pull request:
 - Update documentation and tests whenever behavior changes.
 - Keep changes focused and explain the user-visible impact in the pull request.
 - For UI changes, follow [UI-STANDARDS.md](UI-STANDARDS.md) and include its review checklist in the pull request.
+- Follow [PROJECT-MEMORY.md](PROJECT-MEMORY.md) for architecture boundaries and SOLID, KISS, DRY, and YAGNI decisions.
 
 ### Developer Certificate of Origin
 
@@ -37,6 +38,7 @@ Hoan nghênh đóng góp. Trước khi mở pull request:
 - Cập nhật tài liệu và test khi thay đổi hành vi.
 - Giữ thay đổi tập trung và mô tả ảnh hưởng với người dùng trong pull request.
 - Với thay đổi UI, tuân thủ [UI-STANDARDS.md](UI-STANDARDS.md) và đưa checklist review của tài liệu này vào pull request.
+- Tuân thủ [PROJECT-MEMORY.md](PROJECT-MEMORY.md) về boundary kiến trúc và các quyết định SOLID, KISS, DRY, YAGNI.
 
 ### Developer Certificate of Origin
 
