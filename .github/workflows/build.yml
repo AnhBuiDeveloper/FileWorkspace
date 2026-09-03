@@ -10,6 +10,16 @@ permissions:
   contents: read
 
 jobs:
+  architecture-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore
+      - run: dotnet format --verify-no-changes --no-restore
+      - run: pwsh -File tests/quality/verify-architecture.ps1
   dotnet-tests:
     runs-on: ubuntu-latest
     steps:

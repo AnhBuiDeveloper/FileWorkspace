@@ -2,8 +2,9 @@
   "name": "file-workspace-self-hosted-file-manager",
   "private": true,
   "scripts": {
+    "test:architecture": "pwsh -File tests/quality/verify-architecture.ps1",
     "test:ui": "playwright test",
-    "test:all": "dotnet test FileWorkspace.Tests/FileWorkspace.Tests.csproj --configuration Release && npm run test:ui"
+    "test:all": "dotnet test FileWorkspace.Tests/FileWorkspace.Tests.csproj --configuration Release && npm run test:architecture && npm run test:ui"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1"
