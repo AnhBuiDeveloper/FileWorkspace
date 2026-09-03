@@ -11,7 +11,7 @@
   <main class="card">
     <p class="eyebrow">FILE UPLOAD</p>
     <h1>Gửi file nhanh</h1>
-    <p class="hint">File gửi thẳng tới server, lưu trong folder <code>Upload</code>.</p>
+    <p class="hint">Chọn nhiều file. Mỗi file có tiến độ riêng và có thể pause, resume hoặc stop.</p>
 
     <label class="token-field" for="upload-token">
       Upload token
@@ -21,14 +21,16 @@
     <label class="picker" id="drop-zone" for="file-input">
       <span class="picker-icon">↑</span>
       <span><strong>Chọn file</strong> hoặc kéo thả vào đây</span>
-      <small>Không giới hạn định dạng hay dung lượng từ ứng dụng</small>
-      <input id="file-input" type="file" hidden>
+      <small>Có thể chọn nhiều file · tối đa 3 file truyền đồng thời</small>
+      <input id="file-input" type="file" multiple hidden>
     </label>
 
-    <section id="upload-panel" class="upload-panel" hidden aria-live="polite">
-      <div class="file-line"><span id="file-name"></span><span id="percent">0%</span></div>
-      <div class="bar"><div id="bar-fill"></div></div>
-      <div class="stats"><span id="transferred">0 B / 0 B</span><span id="speed">0 B/s</span></div>
+    <section id="upload-panel" class="upload-panel" hidden aria-live="polite" aria-label="Danh sách upload">
+      <div class="upload-heading">
+        <h2>Đang gửi file</h2>
+        <span id="upload-count"></span>
+      </div>
+      <div id="upload-list" class="upload-list"></div>
     </section>
 
     <p id="status" class="status" role="status"></p>

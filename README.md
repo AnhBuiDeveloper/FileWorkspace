@@ -10,11 +10,12 @@ File Upload is a lightweight ASP.NET Core application for receiving large files 
 
 ### Highlights
 
-- Upload any file through file selection or drag and drop.
-- Live progress, percentage, transferred size, and upload speed.
+- Upload multiple files through file selection or drag and drop.
+- Per-file progress, percentage, transferred size, and upload speed.
+- Pause, resume, or stop each file independently.
 - Token-protected upload endpoint using `UPLOAD_ACCESS_TOKEN`.
 - Direct-to-disk streaming for large uploads.
-- Temporary `.uploading` files are atomically renamed after a successful upload.
+- Resumable chunk uploads; temporary `.uploading` files are atomically renamed after a successful upload.
 - Existing filenames are preserved; uploaded files are not served by the application.
 
 ### Requirements
@@ -60,6 +61,7 @@ The [`deploy/`](deploy/README.md) directory contains an optional Linux systemd +
 ### Operational notes
 
 - A visible `.uploading` file means that an upload is still being written. It is removed or renamed only when the request completes.
+- Pause/Resume retains progress while the browser page and server process remain available. Reloading the page or restarting the server starts a new upload session.
 - Store uploaded files outside `wwwroot`; this project already does so.
 - Use HTTPS before exposing the service on the public Internet. The included Nginx example is HTTP-only and does not issue certificates.
 - Limit network exposure to trusted users or networks. A token is an access control, not a complete perimeter.
@@ -78,11 +80,12 @@ File Upload là ứng dụng ASP.NET Core gọn nhẹ để nhận file dung lư
 
 ### Điểm nổi bật
 
-- Upload mọi loại file bằng chọn file hoặc kéo-thả.
-- Hiển thị tiến độ, phần trăm, dung lượng đã gửi và tốc độ upload theo thời gian thực.
+- Upload nhiều file bằng chọn file hoặc kéo-thả.
+- Hiển thị tiến độ, phần trăm, dung lượng đã gửi và tốc độ upload riêng cho từng file.
+- Pause, resume hoặc stop từng file độc lập.
 - Endpoint upload được bảo vệ bằng token `UPLOAD_ACCESS_TOKEN`.
 - Stream trực tiếp xuống ổ đĩa, phù hợp với file lớn.
-- File tạm có đuôi `.uploading` chỉ được đổi tên nguyên tử sau khi upload thành công.
+- Upload theo chunk có thể resume; file tạm có đuôi `.uploading` chỉ được đổi tên nguyên tử sau khi upload thành công.
 - Không phục vụ trực tiếp file upload; tên file đã tồn tại được giữ nguyên.
 
 ### Yêu cầu
@@ -128,6 +131,7 @@ Thư mục [`deploy/`](deploy/README.md) có cấu hình tham khảo Linux syste
 ### Lưu ý vận hành
 
 - File `.uploading` đang hiển thị nghĩa là upload vẫn được ghi. Nó chỉ được xóa hoặc đổi tên khi request hoàn tất.
+- Pause/Resume giữ tiến độ khi trang trình duyệt và process server vẫn đang hoạt động. Reload trang hoặc restart server sẽ tạo một phiên upload mới.
 - Lưu file upload ngoài `wwwroot`; project này đã áp dụng nguyên tắc đó.
 - Dùng HTTPS trước khi public service. Nginx sample chỉ chạy HTTP và không tự cấp certificate.
 - Giới hạn truy cập mạng cho người hoặc mạng tin cậy. Token là lớp kiểm soát truy cập, không phải toàn bộ lớp phòng thủ.
