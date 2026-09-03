@@ -33,6 +33,12 @@ This document is the durable engineering context for File Workspace, a self-host
 6. Update and run the relevant automated tests before committing. Maintain unit, API integration, and Playwright UI coverage for behavior changes; update docs when behavior or configuration changes.
 7. Describe the product accurately as a self-hosted file manager. Do not imply multi-user cloud-drive capabilities unless they are implemented and documented.
 
+### Automated quality guardrails
+
+- Run \`npm run test:architecture\` before every pull request. It verifies the current architecture boundaries, minimal composition, centralized endpoint behavior, baseline tests, and durable engineering/UI standards.
+- Run \`dotnet format --verify-no-changes --no-restore\` to keep the C# codebase consistently formatted.
+- These checks enforce objective guardrails, not a substitute for human design review. Reviewers must still assess SOLID, KISS, DRY, and YAGNI against the accepted requirement.
+
 ## Tiếng Việt
 
 ### Nguyên tắc kỹ thuật
@@ -63,3 +69,9 @@ This document is the durable engineering context for File Workspace, a self-host
 5. Tuân thủ [UI-STANDARDS.md](UI-STANDARDS.md) với mọi thay đổi browser-facing.
 6. Cập nhật và chạy automated test phù hợp trước khi commit. Duy trì coverage unit, API integration và Playwright UI cho thay đổi hành vi; cập nhật docs khi behavior hoặc config thay đổi.
 7. Mô tả chính xác sản phẩm là file manager tự host. Không ngụ ý tính năng cloud drive đa người dùng khi chưa được triển khai và ghi tài liệu.
+
+### Guardrail chất lượng tự động
+
+- Chạy \`npm run test:architecture\` trước mỗi pull request. Check này xác minh boundary kiến trúc hiện tại, composition tối giản, endpoint behavior được tập trung, baseline test và tiêu chuẩn kỹ thuật/UI lâu dài.
+- Chạy \`dotnet format --verify-no-changes --no-restore\` để giữ định dạng C# nhất quán.
+- Đây là guardrail có tiêu chí khách quan, không thay thế design review của con người. Reviewer vẫn phải đánh giá SOLID, KISS, DRY và YAGNI theo yêu cầu đã được chấp thuận.
