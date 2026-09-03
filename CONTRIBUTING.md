@@ -2,7 +2,7 @@
 
 ## English
 
-Contributions are welcome. Before opening a pull request:
+Contributions to this self-hosted file manager are welcome. Before opening a pull request:
 
 - Do not commit tokens, `.env` files, real uploads, personal data, or credentials.
 - Do not add a dependency whose license conflicts with [LICENSE](LICENSE).
@@ -31,9 +31,9 @@ Do not sign off on behalf of anyone else.
 
 ## Tiếng Việt
 
-Hoan nghênh đóng góp. Trước khi mở pull request:
+Hoan nghênh đóng góp cho file manager tự host này. Trước khi mở pull request:
 
-- Không commit token, file `.env`, file upload thật, dữ liệu cá nhân hoặc credential.
+- Không commit token, file `.env`, file thật trong workspace, dữ liệu cá nhân hoặc credential.
 - Không thêm dependency có license xung đột với [LICENSE](LICENSE).
 - Cập nhật tài liệu và test khi thay đổi hành vi.
 - Giữ thay đổi tập trung và mô tả ảnh hưởng với người dùng trong pull request.

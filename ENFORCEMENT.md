@@ -1,6 +1,6 @@
 # Monitoring and enforcement / Theo dõi và thực thi
 
-This document is for maintainers. It is general operational guidance, not legal advice.
+This document is for maintainers of the File Upload self-hosted file manager. It is general operational guidance, not legal advice.
 
 ## English
 

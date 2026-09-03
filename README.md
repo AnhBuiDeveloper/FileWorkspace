@@ -1,25 +1,31 @@
-# File Upload
+# File Upload — Self-hosted File Manager
 
-> A fast, self-hosted file upload service for trusted users and private infrastructure.
+> A private, token-protected file workspace for trusted users and infrastructure you control.
 
 [English](#english) · [Tiếng Việt](#tiếng-việt)
 
 ## English
 
-File Upload is a lightweight ASP.NET Core application for receiving large files through a simple browser interface. Uploads stream directly to disk rather than being buffered in memory, while the browser reports progress, transferred bytes, and current speed.
+File Upload is a self-hosted, cloud-style file manager built with ASP.NET Core. It gives a trusted group a simple browser workspace to organize folders, upload large files, and download stored files from storage that you control. Uploads stream directly to disk rather than being buffered in memory, while the browser reports progress, transferred bytes, and current speed.
+
+It is deliberately small and self-contained. Today it is not a multi-tenant cloud drive: it has no user accounts, roles, sharing links, client sync, quotas, audit trail, remote object storage, or antivirus integration.
 
 ### Highlights
 
-- Upload multiple files through file selection or drag and drop.
-- Per-file progress, percentage, transferred size, and upload speed.
-- Pause, resume, or stop each file independently.
-- English and Vietnamese interface, with the selected language remembered in the browser.
-- Responsive layout for desktop, tablet, and small touch screens.
-- Authenticated file manager: browse folders, create folders, upload into the current folder, upload a local folder, and download files.
-- Token-protected upload endpoint using `UPLOAD_ACCESS_TOKEN`.
-- Direct-to-disk streaming for large uploads.
-- Resumable chunk uploads; temporary `.uploading` files are atomically renamed after a successful upload.
-- Existing filenames are preserved; uploaded files are not served by the application.
+- Browse the file workspace, navigate folders, create folders, and download files.
+- Upload multiple files through selection or drag and drop, including an entire local folder.
+- Upload to the currently open folder, with independent per-file progress, speed, pause, resume, and stop controls.
+- Stream large files directly to disk with resumable chunk uploads.
+- Keep incomplete uploads as hidden .uploading files, then atomically rename them only after a successful upload.
+- Protect all file-manager actions with one access token supplied through UPLOAD_ACCESS_TOKEN.
+- Provide English and Vietnamese interfaces; remember language and token locally until the user logs out.
+- Render responsively across desktop, tablet, and small touch screens.
+
+### Intended use and scope
+
+Use this project as a private file workspace for people who already trust one another: a home lab, small internal team, private server, or VPN-protected environment. A single shared token currently grants access to browse, create folders, upload, and download. Protect that token accordingly.
+
+For Internet-facing or multi-user use, add an authentication model, authorization, HTTPS, storage and file-size limits, rate limiting, malware scanning, auditing, backups, and a reverse-proxy/WAF posture appropriate to your environment.
 
 ### Requirements
 
@@ -82,20 +88,26 @@ This project is **source-available**, not Open Source under the OSI definition. 
 
 ## Tiếng Việt
 
-File Upload là ứng dụng ASP.NET Core gọn nhẹ để nhận file dung lượng lớn qua giao diện web đơn giản. Dữ liệu được stream thẳng xuống ổ đĩa, không giữ toàn bộ file trong RAM; trình duyệt hiển thị tiến độ, dung lượng đã gửi và tốc độ hiện tại.
+File Upload là file manager tự host theo hướng cloud-style, xây dựng bằng ASP.NET Core. Ứng dụng cung cấp không gian web đơn giản để nhóm người dùng tin cậy tổ chức folder, upload file lớn và tải file từ nơi lưu trữ do chính bạn kiểm soát. Dữ liệu được stream thẳng xuống ổ đĩa, không giữ toàn bộ file trong RAM; trình duyệt hiển thị tiến độ, dung lượng đã gửi và tốc độ hiện tại.
+
+Project được chủ đích giữ gọn và độc lập. Hiện tại đây chưa phải cloud drive đa người dùng: chưa có tài khoản, role, link chia sẻ, client đồng bộ, quota, audit trail, object storage từ xa hoặc tích hợp antivirus.
 
 ### Điểm nổi bật
 
-- Upload nhiều file bằng chọn file hoặc kéo-thả.
-- Hiển thị tiến độ, phần trăm, dung lượng đã gửi và tốc độ upload riêng cho từng file.
-- Pause, resume hoặc stop từng file độc lập.
-- Giao diện Anh và Việt; trình duyệt ghi nhớ ngôn ngữ đã chọn.
+- Duyệt không gian file, đi vào folder, tạo folder và tải xuống file.
+- Upload nhiều file bằng chọn file hoặc kéo-thả, gồm cả một local folder.
+- Upload vào folder đang mở; mỗi file có tiến độ, tốc độ, pause, resume và stop độc lập.
+- Stream file lớn trực tiếp xuống ổ đĩa bằng upload theo chunk có thể resume.
+- Giữ upload chưa hoàn tất ở dạng file .uploading ẩn; chỉ đổi tên nguyên tử khi upload thành công.
+- Bảo vệ mọi thao tác file manager bằng một access token từ UPLOAD_ACCESS_TOKEN.
+- Giao diện Anh và Việt; trình duyệt ghi nhớ ngôn ngữ và token cục bộ đến khi người dùng đăng xuất.
 - Layout responsive cho desktop, tablet và màn hình cảm ứng nhỏ.
-- File manager có xác thực: duyệt folder, tạo folder, upload vào folder đang chọn, upload cả local folder và tải xuống file.
-- Endpoint upload được bảo vệ bằng token `UPLOAD_ACCESS_TOKEN`.
-- Stream trực tiếp xuống ổ đĩa, phù hợp với file lớn.
-- Upload theo chunk có thể resume; file tạm có đuôi `.uploading` chỉ được đổi tên nguyên tử sau khi upload thành công.
-- Không phục vụ trực tiếp file upload; tên file đã tồn tại được giữ nguyên.
+
+### Mục đích sử dụng và phạm vi
+
+Project phù hợp làm không gian file riêng cho những người đã tin cậy nhau: home lab, nhóm nội bộ nhỏ, private server hoặc môi trường có VPN. Một shared token hiện cấp quyền duyệt file, tạo folder, upload và download; cần bảo vệ token tương ứng.
+
+Nếu public Internet hoặc phục vụ nhiều người dùng, hãy bổ sung mô hình đăng nhập và phân quyền, HTTPS, giới hạn dung lượng lưu trữ/kích thước file, rate limit, quét mã độc, audit, backup và reverse proxy/WAF phù hợp với môi trường.
 
 ### Yêu cầu
 

@@ -1,10 +1,10 @@
-# Deployment examples
+# Self-hosted file manager deployment examples
 
 [Tiếng Việt](#tiếng-việt) · [English](#english)
 
 ## Tiếng Việt
 
-Các file trong thư mục này là mẫu cho Linux dùng systemd và Nginx. Chúng không giới hạn nơi bạn host ứng dụng. Bạn có thể chạy trên Windows, bất kỳ Linux distribution/CPU architecture có ASP.NET Core Runtime 10, container, VM, bare metal hoặc cloud platform.
+Các file trong thư mục này là mẫu triển khai file manager tự host trên Linux với systemd và Nginx. Chúng không giới hạn nơi bạn host ứng dụng. Bạn có thể chạy trên Windows, bất kỳ Linux distribution/CPU architecture có ASP.NET Core Runtime 10, container, VM, bare metal hoặc cloud platform.
 
 ### Cách chạy tối thiểu
 
@@ -27,7 +27,7 @@ Copy `.env.example` thành `.env` trong thư mục deploy và thay token. Đặt
 
 ## English
 
-The files in this directory are Linux examples using systemd and Nginx. They do not limit where the application can be hosted. You can run it on Windows, any Linux distribution/CPU architecture supported by ASP.NET Core Runtime 10, a container, VM, bare metal, or a cloud platform.
+The files in this directory are Linux deployment examples for the self-hosted file manager using systemd and Nginx. They do not limit where the application can be hosted. You can run it on Windows, any Linux distribution/CPU architecture supported by ASP.NET Core Runtime 10, a container, VM, bare metal, or a cloud platform.
 
 ### Minimum run path
 

@@ -1,6 +1,6 @@
 [Unit]
 # Example only: replace paths, user/group, and port for your own host.
-Description=File Upload web service
+Description=Self-hosted File Manager web service
 After=network.target
 
 [Service]
