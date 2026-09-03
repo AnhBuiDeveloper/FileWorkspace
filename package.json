@@ -1,0 +1,11 @@
+{
+  "name": "file-upload-self-hosted-file-manager",
+  "private": true,
+  "scripts": {
+    "test:ui": "playwright test",
+    "test:all": "dotnet test FileUpload.Tests/FileUpload.Tests.csproj --configuration Release && npm run test:ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}

@@ -18,3 +18,7 @@ app.UseStaticFiles();
 app.MapFileUploadEndpoints();
 
 app.Run();
+
+public partial class Program
+{
+}

@@ -30,7 +30,7 @@ This document is the durable engineering context for File Upload, a self-hosted 
 3. Keep incomplete uploads hidden and never serve Upload/ as static files.
 4. Keep API changes backward-compatible unless a versioned breaking change is explicitly approved.
 5. Follow [UI-STANDARDS.md](UI-STANDARDS.md) for every browser-facing change.
-6. Build and run the relevant syntax/tests before committing; update docs when behavior or configuration changes.
+6. Update and run the relevant automated tests before committing. Maintain unit, API integration, and Playwright UI coverage for behavior changes; update docs when behavior or configuration changes.
 7. Describe the product accurately as a self-hosted file manager. Do not imply multi-user cloud-drive capabilities unless they are implemented and documented.
 
 ## Tiếng Việt
@@ -61,5 +61,5 @@ This document is the durable engineering context for File Upload, a self-hosted 
 3. Giữ upload chưa hoàn tất ở trạng thái ẩn và không bao giờ serve Upload/ như static file.
 4. Giữ API backward-compatible trừ khi breaking change có version được phê duyệt rõ ràng.
 5. Tuân thủ [UI-STANDARDS.md](UI-STANDARDS.md) với mọi thay đổi browser-facing.
-6. Build và chạy syntax/test phù hợp trước khi commit; cập nhật docs khi behavior hoặc config thay đổi.
+6. Cập nhật và chạy automated test phù hợp trước khi commit. Duy trì coverage unit, API integration và Playwright UI cho thay đổi hành vi; cập nhật docs khi behavior hoặc config thay đổi.
 7. Mô tả chính xác sản phẩm là file manager tự host. Không ngụ ý tính năng cloud drive đa người dùng khi chưa được triển khai và ghi tài liệu.

@@ -76,6 +76,25 @@ The [`deploy/`](deploy/README.md) directory contains an optional Linux systemd +
 - Use HTTPS before exposing the service on the public Internet. The included Nginx example is HTTP-only and does not issue certificates.
 - Limit network exposure to trusted users or networks. A token is an access control, not a complete perimeter.
 
+### Quality checks
+
+The repository maintains three automated test layers:
+
+- Unit tests for token validation and file-manager storage behavior.
+- API integration tests that exercise the real ASP.NET Core routes in an isolated workspace.
+- Playwright UI tests in Chromium for token persistence, localization, folder creation, and upload flow.
+
+Run all checks locally:
+
+~~~text
+dotnet test FileUpload.Tests/FileUpload.Tests.csproj --configuration Release
+npm ci
+npx playwright install chromium
+npm run test:ui
+~~~
+
+The GitHub Actions workflow runs the .NET suite and Playwright suite on pushes and pull requests. Update the relevant tests whenever behavior changes.
+
 ### Security, contributions, and licensing
 
 Read [SECURITY.md](SECURITY.md) before reporting a vulnerability, and [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
@@ -157,6 +176,25 @@ Thư mục [`deploy/`](deploy/README.md) có cấu hình tham khảo Linux syste
 - Lưu file upload ngoài `wwwroot`; project này đã áp dụng nguyên tắc đó.
 - Dùng HTTPS trước khi public service. Nginx sample chỉ chạy HTTP và không tự cấp certificate.
 - Giới hạn truy cập mạng cho người hoặc mạng tin cậy. Token là lớp kiểm soát truy cập, không phải toàn bộ lớp phòng thủ.
+
+### Kiểm tra chất lượng
+
+Repository duy trì ba tầng automated test:
+
+- Unit test cho token validation và hành vi lưu trữ của file manager.
+- API integration test chạy route ASP.NET Core thật trong workspace cô lập.
+- Playwright UI test trên Chromium cho lưu token, đổi ngôn ngữ, tạo folder và luồng upload.
+
+Chạy toàn bộ kiểm tra tại local:
+
+~~~text
+dotnet test FileUpload.Tests/FileUpload.Tests.csproj --configuration Release
+npm ci
+npx playwright install chromium
+npm run test:ui
+~~~
+
+GitHub Actions chạy .NET suite và Playwright suite cho push/pull request. Khi thay đổi behavior, phải cập nhật test liên quan.
 
 ### Bảo mật, đóng góp và license
 

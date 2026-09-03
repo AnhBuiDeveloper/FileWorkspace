@@ -1,0 +1,45 @@
+import { expect, test } from '@playwright/test';
+
+const token = 'playwright-e2e-token';
+
+async function signIn(page) {
+  await page.goto('/');
+  await page.selectOption('#language-select', 'en');
+  await page.locator('#upload-token').fill(token);
+  await page.getByRole('button', { name: 'Refresh' }).click();
+  await expect(page.getByRole('heading', { name: 'Your files' })).toBeVisible();
+}
+
+test('remembers the token, switches language, and logs out', async ({ page }) => {
+  await signIn(page);
+  await page.reload();
+
+  await expect(page.locator('#upload-token')).toHaveValue(token);
+  await expect(page.getByRole('heading', { name: 'Your files' })).toBeVisible();
+  await page.selectOption('#language-select', 'vi');
+  await expect(page.getByRole('heading', { name: 'File của bạn' })).toBeVisible();
+  await page.getByRole('button', { name: 'Đăng xuất' }).click();
+  await expect(page.locator('#files-panel')).toBeHidden();
+  await expect(page.locator('#upload-token')).toHaveValue('');
+});
+
+test('creates a folder and uploads a file into it', async ({ page }) => {
+  await signIn(page);
+  const folderName = 'e2e-' + Date.now();
+  const fileName = 'playwright-proof.txt';
+
+  await page.getByRole('button', { name: 'New folder' }).click();
+  await page.locator('#folder-name').fill(folderName);
+  await page.getByRole('button', { name: 'Create folder', exact: true }).click();
+  await expect(page.getByRole('button', { name: folderName, exact: true })).toBeVisible();
+  await page.getByRole('button', { name: folderName, exact: true }).click();
+  await expect(page.locator('#breadcrumbs').getByRole('button', { name: folderName, exact: true })).toBeDisabled();
+  await page.locator('#file-input').setInputFiles({
+    name: fileName,
+    mimeType: 'text/plain',
+    buffer: Buffer.from('Playwright verifies the upload flow.')
+  });
+
+  await expect(page.getByText('Completed', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: fileName, exact: true })).toBeVisible();
+});
