@@ -1,4 +1,4 @@
-namespace FileUpload.Services;
+namespace FileWorkspace.Services;
 
 public sealed class FileManagerException(string message, int statusCode) : Exception(message)
 {

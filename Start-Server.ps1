@@ -4,7 +4,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$projectFile = Join-Path $PSScriptRoot 'FileUpload.csproj'
+$projectFile = Join-Path $PSScriptRoot 'FileWorkspace.csproj'
 $serverUrl = "http://127.0.0.1:$Port"
 
 if (-not (Test-Path -LiteralPath $projectFile)) {
@@ -17,24 +17,24 @@ foreach ($listener in $listeners) {
     $processId = $listener.OwningProcess
     $processInfo = Get-CimInstance Win32_Process -Filter "ProcessId = $processId"
     $commandLine = [string]$processInfo.CommandLine
-    $isFileUpload = $commandLine -match [regex]::Escape($projectFile) -or
-        $commandLine -match 'FileUpload(\.dll|\.exe|\.csproj)'
+    $isFileWorkspace = $commandLine -match [regex]::Escape($projectFile) -or
+        $commandLine -match 'FileWorkspace(\.dll|\.exe|\.csproj)'
 
-    if (-not $isFileUpload) {
+    if (-not $isFileWorkspace) {
         try {
             $page = (Invoke-WebRequest -Uri "$serverUrl/" -UseBasicParsing -TimeoutSec 2).Content
-            $isFileUpload = $page -match '<title>File Upload</title>'
+            $isFileWorkspace = $page -match '<title>File Workspace</title>'
         }
         catch {
-            $isFileUpload = $false
+            $isFileWorkspace = $false
         }
     }
 
-    if (-not $isFileUpload) {
+    if (-not $isFileWorkspace) {
         throw "Port $Port đang được process khác dùng (PID $processId). Không tự dừng process này."
     }
 
-    Write-Host "Dừng FileUpload cũ (PID $processId)..."
+    Write-Host "Dừng FileWorkspace cũ (PID $processId)..."
     Stop-Process -Id $processId -Force
 
     for ($attempt = 0; $attempt -lt 50; $attempt++) {
@@ -46,7 +46,7 @@ foreach ($listener in $listeners) {
 }
 
 $configuration = 'Debug'
-$serverDll = Join-Path $PSScriptRoot "bin\$configuration\net10.0\FileUpload.dll"
+$serverDll = Join-Path $PSScriptRoot "bin\$configuration\net10.0\FileWorkspace.dll"
 
 Write-Host 'Build server...'
 & dotnet build $projectFile --configuration $configuration --nologo

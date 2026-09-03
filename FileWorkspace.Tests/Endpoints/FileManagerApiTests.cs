@@ -1,10 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
-using FileUpload.Models;
-using FileUpload.Tests.TestSupport;
+using FileWorkspace.Models;
+using FileWorkspace.Tests.TestSupport;
 
-namespace FileUpload.Tests.Endpoints;
+namespace FileWorkspace.Tests.Endpoints;
 
 public sealed class FileManagerApiTests
 {

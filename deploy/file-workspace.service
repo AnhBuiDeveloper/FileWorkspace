@@ -1,0 +1,21 @@
+[Unit]
+# Example only: replace paths, user/group, and port for your own host.
+Description=File Workspace web service
+After=network.target
+
+[Service]
+Type=simple
+User=fileworkspace
+Group=fileworkspace
+WorkingDirectory=/opt/file-workspace
+EnvironmentFile=/opt/file-workspace/.env
+ExecStart=/usr/bin/dotnet /opt/file-workspace/FileWorkspace.dll --urls http://127.0.0.1:5088
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/opt/file-workspace/Upload
+
+[Install]
+WantedBy=multi-user.target

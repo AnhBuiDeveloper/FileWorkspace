@@ -3,7 +3,7 @@ const MAX_CONCURRENT_UPLOADS = 3;
 
 const copy = {
   vi: {
-    documentTitle: 'File Manager', languageLabel: 'Ngôn ngữ', title: 'Không gian file riêng', hint: 'Quản lý folder, upload nhiều file và tải xuống an toàn với upload token.',
+    documentTitle: 'File Workspace', languageLabel: 'Ngôn ngữ', title: 'Không gian file riêng', hint: 'Quản lý folder, upload nhiều file và tải xuống an toàn với upload token.',
     tokenLabel: 'Upload token', tokenPlaceholder: 'Nhập upload token', logout: 'Đăng xuất', loggedOut: 'Đã đăng xuất và dừng các upload đang hoạt động.', tokenRequired: 'Nhập upload token trước.',
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'File của bạn', newFolder: 'Tạo folder', uploadFiles: 'Upload file', uploadFolder: 'Upload folder', refreshFiles: 'Làm mới',
     dropZoneText: 'Kéo thả file vào đây để upload vào folder hiện tại', dropZoneLabel: 'Chọn file để upload vào folder hiện tại', home: 'Upload', filesLoading: 'Đang tải nội dung…', filesEmpty: 'Folder này đang trống.', refreshFilesHint: 'Nhấn Làm mới để xem file với token hiện tại.',
@@ -14,7 +14,7 @@ const copy = {
     errors: { createSession: 'Không thể tạo phiên upload.', invalidResponse: 'Phản hồi server không hợp lệ.', connection: 'Không kết nối được server.', uploadFailed: 'Upload thất bại.', unauthorized: 'Upload token không hợp lệ hoặc đã hết quyền truy cập.', invalidFileName: 'Tên file không hợp lệ.', invalidFileSize: 'Dung lượng file không hợp lệ.', invalidFolder: 'Tên hoặc đường dẫn thư mục không hợp lệ.', folderExists: 'Tên thư mục đã tồn tại.', folderNotFound: 'Thư mục không tồn tại.', sessionNotFound: 'Phiên upload không tồn tại hoặc đã kết thúc.', invalidChunk: 'Chunk không hợp lệ.', invalidChunkSize: 'Kích thước chunk không hợp lệ.', incompleteChunk: 'Dữ liệu chunk chưa hoàn chỉnh.', downloadFailed: 'Không thể tải file.' }
   },
   en: {
-    documentTitle: 'File Manager', languageLabel: 'Language', title: 'Private file workspace', hint: 'Manage folders, upload multiple files, and download securely with an upload token.',
+    documentTitle: 'File Workspace', languageLabel: 'Language', title: 'Private file workspace', hint: 'Manage folders, upload multiple files, and download securely with an upload token.',
     tokenLabel: 'Upload token', tokenPlaceholder: 'Enter upload token', logout: 'Log out', loggedOut: 'You have been logged out and active uploads have been stopped.', tokenRequired: 'Enter the upload token first.',
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'Your files', newFolder: 'New folder', uploadFiles: 'Upload files', uploadFolder: 'Upload folder', refreshFiles: 'Refresh',
     dropZoneText: 'Drop files here to upload them to the current folder', dropZoneLabel: 'Choose files to upload to the current folder', home: 'Upload', filesLoading: 'Loading contents…', filesEmpty: 'This folder is empty.', refreshFilesHint: 'Select Refresh to view files with the current token.',
@@ -57,7 +57,12 @@ let currentPath = '';
 let listedToken = '';
 let entries = [];
 let fileRequestVersion = 0;
-let currentLanguage = localStorage.getItem('file-upload-language') || (navigator.language.startsWith('vi') ? 'vi' : 'en');
+const storedLanguage = localStorage.getItem('file-workspace-language') ?? localStorage.getItem('file-upload-language');
+if (storedLanguage) {
+  localStorage.setItem('file-workspace-language', storedLanguage);
+  localStorage.removeItem('file-upload-language');
+}
+let currentLanguage = storedLanguage || (navigator.language.startsWith('vi') ? 'vi' : 'en');
 
 tokenInput.value = localStorage.getItem('upload-token') || '';
 languageSelect.value = currentLanguage;
@@ -73,7 +78,7 @@ tokenInput.addEventListener('input', () => {
 });
 languageSelect.addEventListener('change', () => {
   currentLanguage = languageSelect.value;
-  localStorage.setItem('file-upload-language', currentLanguage);
+  localStorage.setItem('file-workspace-language', currentLanguage);
   applyLanguage();
 });
 logoutButton.addEventListener('click', logout);

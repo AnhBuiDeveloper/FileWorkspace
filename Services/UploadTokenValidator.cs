@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace FileUpload.Services;
+namespace FileWorkspace.Services;
 
 public sealed class UploadTokenValidator
 {

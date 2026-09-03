@@ -1,9 +1,9 @@
 using System.Buffers;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
-using FileUpload.Models;
+using FileWorkspace.Models;
 
-namespace FileUpload.Services;
+namespace FileWorkspace.Services;
 
 public sealed class FileManagerService
 {

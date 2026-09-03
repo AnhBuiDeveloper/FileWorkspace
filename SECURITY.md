@@ -1,6 +1,6 @@
 # Security policy / Chính sách bảo mật
 
-Security policy for File Upload, the self-hosted file manager.
+Security policy for File Workspace, the self-hosted file manager.
 
 ## English
 

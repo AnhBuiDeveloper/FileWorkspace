@@ -2,11 +2,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 
-namespace FileUpload.Tests.TestSupport;
+namespace FileWorkspace.Tests.TestSupport;
 
 public sealed class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private readonly string _contentRoot = Path.Combine(Path.GetTempPath(), "file-upload-api-tests", Guid.NewGuid().ToString("N"));
+    private readonly string _contentRoot = Path.Combine(Path.GetTempPath(), "file-workspace-api-tests", Guid.NewGuid().ToString("N"));
 
     public string UploadRoot => Path.Combine(_contentRoot, "Upload");
     public const string AccessToken = "integration-test-token";

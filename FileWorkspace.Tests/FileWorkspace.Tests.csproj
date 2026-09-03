@@ -17,6 +17,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FileUpload.csproj" />
+    <ProjectReference Include="..\FileWorkspace.csproj" />
   </ItemGroup>
 </Project>
