@@ -1,0 +1,38 @@
+<!doctype html>
+<!-- Required Notice: Copyright (c) 2026 Anh Bui (https://github.com/AnhBuiDeveloper/FileUpload) -->
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>File Upload</title>
+  <link rel="stylesheet" href="/site.css">
+</head>
+<body>
+  <main class="card">
+    <p class="eyebrow">FILE UPLOAD</p>
+    <h1>Gửi file nhanh</h1>
+    <p class="hint">File gửi thẳng tới server, lưu trong folder <code>Upload</code>.</p>
+
+    <label class="token-field" for="upload-token">
+      Upload token
+      <input id="upload-token" type="password" autocomplete="off" placeholder="Nhập token để upload">
+    </label>
+
+    <label class="picker" id="drop-zone" for="file-input">
+      <span class="picker-icon">↑</span>
+      <span><strong>Chọn file</strong> hoặc kéo thả vào đây</span>
+      <small>Không giới hạn định dạng hay dung lượng từ ứng dụng</small>
+      <input id="file-input" type="file" hidden>
+    </label>
+
+    <section id="upload-panel" class="upload-panel" hidden aria-live="polite">
+      <div class="file-line"><span id="file-name"></span><span id="percent">0%</span></div>
+      <div class="bar"><div id="bar-fill"></div></div>
+      <div class="stats"><span id="transferred">0 B / 0 B</span><span id="speed">0 B/s</span></div>
+    </section>
+
+    <p id="status" class="status" role="status"></p>
+  </main>
+  <script src="/site.js"></script>
+</body>
+</html>
