@@ -10,6 +10,10 @@ const uploadCount = document.querySelector('#upload-count');
 const status = document.querySelector('#status');
 const languageSelect = document.querySelector('#language-select');
 const logoutButton = document.querySelector('#logout-button');
+const filesPanel = document.querySelector('#files-panel');
+const filesList = document.querySelector('#files-list');
+const filesStatus = document.querySelector('#files-status');
+const refreshFilesButton = document.querySelector('#refresh-files');
 
 const translations = {
   vi: {
@@ -24,6 +28,16 @@ const translations = {
     orDrop: 'hoặc kéo thả vào đây',
     pickerNote: 'Có thể chọn nhiều file · tối đa 3 file truyền đồng thời',
     uploadListTitle: 'Đang gửi file',
+    filesTitle: 'File đã upload',
+    refreshFiles: 'Làm mới',
+    filesLoading: 'Đang tải danh sách file…',
+    filesEmpty: 'Chưa có file nào.',
+    refreshFilesHint: 'Nhấn Làm mới để xem file với token hiện tại.',
+    download: 'Tải xuống',
+    downloading: 'Đang chuẩn bị…',
+    downloadStarted: 'Đã bắt đầu tải file.',
+      downloadFailed: 'Không thể tải file.',
+      unauthorized: 'Upload token không hợp lệ hoặc đã hết quyền truy cập.',
     tokenRequired: 'Nhập upload token trước.',
     loggedOut: 'Đã đăng xuất và dừng các upload đang hoạt động.',
     states: { preparing: 'Đang chuẩn bị…', queued: 'Đang chờ…', uploading: 'Đang upload…', paused: 'Đã tạm dừng', stopped: 'Đã dừng', completed: 'Hoàn tất', error: 'Có lỗi' },
@@ -53,6 +67,16 @@ const translations = {
     orDrop: 'or drag and drop them here',
     pickerNote: 'Multiple files supported · up to 3 files upload at once',
     uploadListTitle: 'Uploads',
+    filesTitle: 'Uploaded files',
+    refreshFiles: 'Refresh',
+    filesLoading: 'Loading files…',
+    filesEmpty: 'No files yet.',
+    refreshFilesHint: 'Select Refresh to view files with the current token.',
+    download: 'Download',
+    downloading: 'Preparing…',
+    downloadStarted: 'The download has started.',
+      downloadFailed: 'Could not download the file.',
+      unauthorized: 'The upload token is invalid or no longer has access.',
     tokenRequired: 'Enter the upload token first.',
     loggedOut: 'You have been logged out and active uploads have been stopped.',
     states: { preparing: 'Preparing…', queued: 'Queued', uploading: 'Uploading…', paused: 'Paused', stopped: 'Stopped', completed: 'Completed', error: 'Error' },
@@ -75,6 +99,8 @@ const translations = {
 const uploads = [];
 let activeTransfers = 0;
 let currentLanguage = localStorage.getItem('file-upload-language') || (navigator.language.startsWith('vi') ? 'vi' : 'en');
+let storedFiles = [];
+let listedToken = '';
 
 tokenInput.value = localStorage.getItem('upload-token') || '';
 tokenInput.addEventListener('input', () => {
@@ -84,6 +110,7 @@ tokenInput.addEventListener('input', () => {
   updateAuthControls();
 });
 logoutButton.addEventListener('click', logout);
+refreshFilesButton.addEventListener('click', loadFiles);
 languageSelect.value = currentLanguage;
 languageSelect.addEventListener('change', () => {
   currentLanguage = languageSelect.value;
@@ -92,6 +119,7 @@ languageSelect.addEventListener('change', () => {
 });
 applyLanguage();
 updateAuthControls();
+if (tokenInput.value.trim()) loadFiles();
 
 fileInput.addEventListener('change', () => {
   addFiles(fileInput.files);
@@ -167,7 +195,7 @@ class UploadTask {
         }
       });
       const data = await readResponse(response);
-      if (!response.ok) throw new Error(data.error || `Upload lỗi (${response.status}).`);
+      if (!response.ok) throw new Error(response.status === 401 ? t('errors.unauthorized') : data.error || t('errors.uploadFailed'));
 
       this.uploadId = data.uploadId;
       this.uploadedBytes = data.uploadedBytes || 0;
@@ -211,6 +239,7 @@ class UploadTask {
           this.state = 'completed';
           this.uploadedBytes = this.file.size;
           this.speed = 0;
+          loadFiles();
         }
         this.render();
       }
@@ -259,7 +288,7 @@ class UploadTask {
           }
           return;
         }
-        reject(new Error(readXhrError(xhr) || `Upload lỗi (${xhr.status}).`));
+        reject(new Error(xhr.status === 401 ? t('errors.unauthorized') : readXhrError(xhr) || t('errors.uploadFailed')));
       };
       xhr.onerror = () => reject(new Error(t('errors.connection')));
       xhr.onabort = () => reject(new DOMException(t('states.paused'), 'AbortError'));
@@ -405,13 +434,115 @@ function logout() {
     .forEach(upload => upload.stop());
   localStorage.removeItem('upload-token');
   tokenInput.value = '';
+  storedFiles = [];
+  listedToken = '';
   updateAuthControls();
   setStatus(t('loggedOut'), 'success');
   tokenInput.focus();
 }
 
 function updateAuthControls() {
-  logoutButton.hidden = !tokenInput.value.trim();
+  const token = tokenInput.value.trim();
+  logoutButton.hidden = !token;
+  filesPanel.hidden = !token;
+  if (!token) {
+    filesList.replaceChildren();
+    filesStatus.textContent = '';
+    return;
+  }
+
+  if (listedToken !== token) {
+    storedFiles = [];
+    filesList.replaceChildren();
+    filesStatus.textContent = t('refreshFilesHint');
+  }
+}
+
+async function loadFiles() {
+  const token = tokenInput.value.trim();
+  if (!token) return;
+
+  refreshFilesButton.disabled = true;
+  filesStatus.textContent = t('filesLoading');
+  try {
+    const response = await fetch('/api/files', { headers: { 'X-Upload-Token': token } });
+    const data = await readResponse(response);
+    if (!response.ok) throw new Error(response.status === 401 ? t('errors.unauthorized') : data.error || t('errors.connection'));
+
+    storedFiles = Array.isArray(data) ? data : [];
+    listedToken = token;
+    renderStoredFiles();
+  } catch (error) {
+    storedFiles = [];
+    filesList.replaceChildren();
+    filesStatus.textContent = localizeError(error.message || t('errors.connection'));
+  } finally {
+    refreshFilesButton.disabled = false;
+  }
+}
+
+function renderStoredFiles() {
+  filesList.replaceChildren();
+  if (!storedFiles.length) {
+    filesStatus.textContent = t('filesEmpty');
+    return;
+  }
+
+  filesStatus.textContent = currentLanguage === 'vi'
+    ? `${storedFiles.length} file`
+    : `${storedFiles.length} file${storedFiles.length === 1 ? '' : 's'}`;
+
+  storedFiles.forEach(file => {
+    const row = document.createElement('article');
+    row.className = 'stored-file';
+    const info = document.createElement('div');
+    const name = document.createElement('div');
+    name.className = 'stored-file-name';
+    name.textContent = file.name;
+    name.title = file.name;
+    const details = document.createElement('div');
+    details.className = 'stored-file-details';
+    details.textContent = `${formatBytes(file.bytes)} · ${formatDate(file.uploadedAtUtc)}`;
+    info.append(name, details);
+    const download = document.createElement('button');
+    download.className = 'download-button';
+    download.type = 'button';
+    download.textContent = t('download');
+    download.addEventListener('click', () => downloadFile(file, download));
+    row.append(info, download);
+    filesList.append(row);
+  });
+}
+
+async function downloadFile(file, buttonElement) {
+  const token = tokenInput.value.trim();
+  if (!token) return;
+
+  buttonElement.disabled = true;
+  buttonElement.textContent = t('downloading');
+  try {
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = '/api/files/download';
+    form.target = '_blank';
+    form.hidden = true;
+    [['name', file.name], ['token', token]].forEach(([name, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value;
+      form.append(input);
+    });
+    document.body.append(form);
+    form.submit();
+    form.remove();
+    filesStatus.textContent = t('downloadStarted');
+  } catch (error) {
+    filesStatus.textContent = localizeError(error.message || t('downloadFailed'));
+  } finally {
+    buttonElement.disabled = false;
+    buttonElement.textContent = t('download');
+  }
 }
 
 function applyLanguage() {
@@ -425,7 +556,9 @@ function applyLanguage() {
   });
   languageSelect.setAttribute('aria-label', t('languageLabel'));
   panel.setAttribute('aria-label', t('uploadListTitle'));
+  filesPanel.setAttribute('aria-label', t('filesTitle'));
   uploads.forEach(upload => upload.render());
+  renderStoredFiles();
   updateUploadCount();
 }
 
@@ -443,6 +576,15 @@ function localizeError(message) {
     'Dữ liệu chunk chưa hoàn chỉnh.': 'incompleteChunk'
   };
   return knownErrors[message] ? t(`errors.${knownErrors[message]}`) : message;
+}
+
+function formatDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat(currentLanguage === 'vi' ? 'vi-VN' : 'en-GB', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  }).format(date);
 }
 
 function formatBytes(bytes) {

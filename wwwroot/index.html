@@ -45,6 +45,15 @@
       <div id="upload-list" class="upload-list"></div>
     </section>
 
+    <section id="files-panel" class="files-panel" hidden aria-live="polite" aria-label="Files">
+      <div class="upload-heading">
+        <h2 data-i18n="filesTitle">File đã upload</h2>
+        <button id="refresh-files" class="refresh-button" type="button" data-i18n="refreshFiles">Làm mới</button>
+      </div>
+      <p id="files-status" class="files-status"></p>
+      <div id="files-list" class="files-list"></div>
+    </section>
+
     <p id="status" class="status" role="status"></p>
   </main>
   <script src="/site.js"></script>

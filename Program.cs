@@ -188,6 +188,43 @@ app.MapDelete("/api/uploads/{uploadId}", async (HttpContext context, string uplo
     return Results.NoContent();
 });
 
+app.MapGet("/api/files", (HttpContext context) =>
+{
+    if (!TokenMatches(uploadAccessToken, context.Request.Headers["X-Upload-Token"].ToString()))
+        return Results.Unauthorized();
+
+    var files = Directory.EnumerateFiles(uploadDirectory)
+        .Select(path => new FileInfo(path))
+        .Where(file => !IsTemporaryUpload(file.Name))
+        .OrderByDescending(file => file.LastWriteTimeUtc)
+        .ThenBy(file => file.Name, StringComparer.OrdinalIgnoreCase)
+        .Select(file => new
+        {
+            name = file.Name,
+            bytes = file.Length,
+            uploadedAtUtc = file.LastWriteTimeUtc
+        });
+
+    return Results.Ok(files);
+});
+
+app.MapPost("/api/files/download", async (HttpContext context) =>
+{
+    var form = await context.Request.ReadFormAsync();
+    if (!TokenMatches(uploadAccessToken, form["token"].ToString()))
+        return Results.Unauthorized();
+
+    var fileName = GetSafeFileName(form["name"].ToString());
+    if (fileName is null || IsTemporaryUpload(fileName))
+        return Results.NotFound();
+
+    var filePath = Path.Combine(uploadDirectory, fileName);
+    if (!File.Exists(filePath))
+        return Results.NotFound();
+
+    return Results.File(filePath, "application/octet-stream", fileDownloadName: fileName, enableRangeProcessing: true);
+});
+
 app.Run();
 
 static string? GetSafeFileName(string encodedName)
@@ -202,6 +239,10 @@ static string? GetSafeFileName(string encodedName)
         return null;
     }
 }
+
+static bool IsTemporaryUpload(string fileName) =>
+    fileName.StartsWith(".", StringComparison.Ordinal) &&
+    fileName.EndsWith(".uploading", StringComparison.OrdinalIgnoreCase);
 
 static string ReserveUniqueFileName(string directory, string requestedName, ConcurrentDictionary<string, byte> reservedNames, object fileNameLock)
 {
