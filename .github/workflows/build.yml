@@ -20,7 +20,7 @@ jobs:
       - run: dotnet restore
       - run: dotnet build --configuration Release --no-restore
       - run: dotnet test FileUpload.Tests/FileUpload.Tests.csproj --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults/coverage
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: dotnet-test-results
@@ -40,7 +40,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run test:ui
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report
