@@ -22,10 +22,13 @@
     <h1 data-i18n="title">Gửi file nhanh</h1>
     <p class="hint" data-i18n="hint">Chọn nhiều file. Mỗi file có tiến độ riêng và có thể pause, resume hoặc stop.</p>
 
-    <label class="token-field" for="upload-token">
-      <span data-i18n="tokenLabel">Upload token</span>
+    <div class="token-field">
+      <div class="token-heading">
+        <label for="upload-token" data-i18n="tokenLabel">Upload token</label>
+        <button id="logout-button" class="logout-button" type="button" hidden data-i18n="logout">Logout</button>
+      </div>
       <input id="upload-token" type="password" autocomplete="off" data-i18n-placeholder="tokenPlaceholder" placeholder="Nhập token để upload">
-    </label>
+    </div>
 
     <label class="picker" id="drop-zone" for="file-input">
       <span class="picker-icon">↑</span>

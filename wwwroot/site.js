@@ -9,6 +9,7 @@ const uploadList = document.querySelector('#upload-list');
 const uploadCount = document.querySelector('#upload-count');
 const status = document.querySelector('#status');
 const languageSelect = document.querySelector('#language-select');
+const logoutButton = document.querySelector('#logout-button');
 
 const translations = {
   vi: {
@@ -18,11 +19,13 @@ const translations = {
     hint: 'Chọn nhiều file. Mỗi file có tiến độ riêng và có thể pause, resume hoặc stop.',
     tokenLabel: 'Upload token',
     tokenPlaceholder: 'Nhập token để upload',
+    logout: 'Đăng xuất',
     chooseFile: 'Chọn file',
     orDrop: 'hoặc kéo thả vào đây',
     pickerNote: 'Có thể chọn nhiều file · tối đa 3 file truyền đồng thời',
     uploadListTitle: 'Đang gửi file',
     tokenRequired: 'Nhập upload token trước.',
+    loggedOut: 'Đã đăng xuất và dừng các upload đang hoạt động.',
     states: { preparing: 'Đang chuẩn bị…', queued: 'Đang chờ…', uploading: 'Đang upload…', paused: 'Đã tạm dừng', stopped: 'Đã dừng', completed: 'Hoàn tất', error: 'Có lỗi' },
     buttons: { pause: 'Pause', resume: 'Resume', stop: 'Stop' },
     errors: {
@@ -45,11 +48,13 @@ const translations = {
     hint: 'Select multiple files. Each upload has its own progress and can be paused, resumed, or stopped.',
     tokenLabel: 'Upload token',
     tokenPlaceholder: 'Enter upload token',
+    logout: 'Log out',
     chooseFile: 'Choose files',
     orDrop: 'or drag and drop them here',
     pickerNote: 'Multiple files supported · up to 3 files upload at once',
     uploadListTitle: 'Uploads',
     tokenRequired: 'Enter the upload token first.',
+    loggedOut: 'You have been logged out and active uploads have been stopped.',
     states: { preparing: 'Preparing…', queued: 'Queued', uploading: 'Uploading…', paused: 'Paused', stopped: 'Stopped', completed: 'Completed', error: 'Error' },
     buttons: { pause: 'Pause', resume: 'Resume', stop: 'Stop' },
     errors: {
@@ -71,8 +76,14 @@ const uploads = [];
 let activeTransfers = 0;
 let currentLanguage = localStorage.getItem('file-upload-language') || (navigator.language.startsWith('vi') ? 'vi' : 'en');
 
-tokenInput.value = sessionStorage.getItem('upload-token') || '';
-tokenInput.addEventListener('input', () => sessionStorage.setItem('upload-token', tokenInput.value));
+tokenInput.value = localStorage.getItem('upload-token') || '';
+tokenInput.addEventListener('input', () => {
+  const token = tokenInput.value.trim();
+  if (token) localStorage.setItem('upload-token', token);
+  else localStorage.removeItem('upload-token');
+  updateAuthControls();
+});
+logoutButton.addEventListener('click', logout);
 languageSelect.value = currentLanguage;
 languageSelect.addEventListener('change', () => {
   currentLanguage = languageSelect.value;
@@ -80,6 +91,7 @@ languageSelect.addEventListener('change', () => {
   applyLanguage();
 });
 applyLanguage();
+updateAuthControls();
 
 fileInput.addEventListener('change', () => {
   addFiles(fileInput.files);
@@ -385,6 +397,21 @@ function updateUploadCount() {
 function setStatus(message, className) {
   status.textContent = message;
   status.className = `status ${className}`.trim();
+}
+
+function logout() {
+  uploads
+    .filter(upload => !['completed', 'stopped', 'error'].includes(upload.state))
+    .forEach(upload => upload.stop());
+  localStorage.removeItem('upload-token');
+  tokenInput.value = '';
+  updateAuthControls();
+  setStatus(t('loggedOut'), 'success');
+  tokenInput.focus();
+}
+
+function updateAuthControls() {
+  logoutButton.hidden = !tokenInput.value.trim();
 }
 
 function applyLanguage() {

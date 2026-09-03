@@ -12,6 +12,9 @@ h2 { margin: 0; font-size: 1rem; }
 .hint { color: #aab8da; line-height: 1.55; }
 code { color: #cfdbff; }
 .token-field { display: grid; gap: 7px; margin-top: 24px; color: #c7d4f6; font-size: .9rem; font-weight: 700; }
+.token-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.logout-button { padding: 3px 7px; color: #b9c8ee; font: inherit; font-size: .75rem; font-weight: 700; background: transparent; border: 1px solid #395482; border-radius: 6px; cursor: pointer; }
+.logout-button:hover { color: #fff; border-color: #79a6ff; }
 .token-field input { width: 100%; padding: 11px 13px; color: #edf2ff; font: inherit; background: #09152f; border: 1px solid #395482; border-radius: 9px; outline: none; }
 .token-field input:focus { border-color: #79a6ff; box-shadow: 0 0 0 3px #3478e233; }
 .picker { min-height: 180px; margin-top: 28px; border: 2px dashed #49679f; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-align: center; transition: .18s ease; }

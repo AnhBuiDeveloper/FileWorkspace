@@ -63,6 +63,7 @@ The [`deploy/`](deploy/README.md) directory contains an optional Linux systemd +
 
 - A visible `.uploading` file means that an upload is still being written. It is removed or renamed only when the request completes.
 - Pause/Resume retains progress while the browser page and server process remain available. Reloading the page or restarting the server starts a new upload session.
+- The browser remembers the upload token on the current device until **Log out**. Do not use this option on a shared browser profile; log out when finished.
 - Store uploaded files outside `wwwroot`; this project already does so.
 - Use HTTPS before exposing the service on the public Internet. The included Nginx example is HTTP-only and does not issue certificates.
 - Limit network exposure to trusted users or networks. A token is an access control, not a complete perimeter.
@@ -134,6 +135,7 @@ Thư mục [`deploy/`](deploy/README.md) có cấu hình tham khảo Linux syste
 
 - File `.uploading` đang hiển thị nghĩa là upload vẫn được ghi. Nó chỉ được xóa hoặc đổi tên khi request hoàn tất.
 - Pause/Resume giữ tiến độ khi trang trình duyệt và process server vẫn đang hoạt động. Reload trang hoặc restart server sẽ tạo một phiên upload mới.
+- Trình duyệt ghi nhớ upload token trên thiết bị hiện tại đến khi **Đăng xuất**. Không dùng trên browser profile dùng chung; hãy đăng xuất khi hoàn tất.
 - Lưu file upload ngoài `wwwroot`; project này đã áp dụng nguyên tắc đó.
 - Dùng HTTPS trước khi public service. Nginx sample chỉ chạy HTTP và không tự cấp certificate.
 - Giới hạn truy cập mạng cho người hoặc mạng tin cậy. Token là lớp kiểm soát truy cập, không phải toàn bộ lớp phòng thủ.
