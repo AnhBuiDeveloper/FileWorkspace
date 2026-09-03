@@ -1,7 +1,7 @@
-using FileUpload.Services;
+using FileWorkspace.Services;
 using Microsoft.Extensions.Configuration;
 
-namespace FileUpload.Tests.Services;
+namespace FileWorkspace.Tests.Services;
 
 public sealed class UploadTokenValidatorTests
 {

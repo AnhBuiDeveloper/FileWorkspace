@@ -1,9 +1,9 @@
 using System.Text;
-using FileUpload.Models;
-using FileUpload.Services;
-using FileUpload.Tests.TestSupport;
+using FileWorkspace.Models;
+using FileWorkspace.Services;
+using FileWorkspace.Tests.TestSupport;
 
-namespace FileUpload.Tests.Services;
+namespace FileWorkspace.Tests.Services;
 
 public sealed class FileManagerServiceTests
 {

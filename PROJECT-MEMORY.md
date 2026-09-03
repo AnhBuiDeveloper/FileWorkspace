@@ -1,6 +1,6 @@
 # Project memory / Bộ nhớ dự án
 
-This document is the durable engineering context for File Upload, a self-hosted file manager. Read it before changing application behavior, API contracts, storage, or user interface.
+This document is the durable engineering context for File Workspace, a self-hosted file manager. Read it before changing application behavior, API contracts, storage, or user interface.
 
 ## English
 

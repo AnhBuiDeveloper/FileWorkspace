@@ -1,4 +1,4 @@
-# File Upload — Self-hosted File Manager
+# File Workspace — Self-hosted File Manager
 
 > A private, token-protected file workspace for trusted users and infrastructure you control.
 
@@ -6,7 +6,7 @@
 
 ## English
 
-File Upload is a self-hosted, cloud-style file manager built with ASP.NET Core. It gives a trusted group a simple browser workspace to organize folders, upload large files, and download stored files from storage that you control. Uploads stream directly to disk rather than being buffered in memory, while the browser reports progress, transferred bytes, and current speed.
+File Workspace is a self-hosted, cloud-style file manager built with ASP.NET Core. It gives a trusted group a simple browser workspace to organize folders, upload large files, and download stored files from storage that you control. Uploads stream directly to disk rather than being buffered in memory, while the browser reports progress, transferred bytes, and current speed.
 
 It is deliberately small and self-contained. Today it is not a multi-tenant cloud drive: it has no user accounts, roles, sharing links, client sync, quotas, audit trail, remote object storage, or antivirus integration.
 
@@ -59,10 +59,10 @@ Open `http://127.0.0.1:5088`, enter the upload token, and choose a file. The `.e
 
 You may host the service on any environment that supports ASP.NET Core 10: Windows, Linux on x64 or ARM64, containers, virtual machines, bare metal, or a managed cloud platform.
 
-After publishing for your target runtime, provide the token through an environment variable, your platform's secret manager, or a `.env` file beside `FileUpload.dll`, then run:
+After publishing for your target runtime, provide the token through an environment variable, your platform's secret manager, or a `.env` file beside `FileWorkspace.dll`, then run:
 
 ```text
-dotnet FileUpload.dll --urls http://127.0.0.1:5088
+dotnet FileWorkspace.dll --urls http://127.0.0.1:5088
 ```
 
 The [`deploy/`](deploy/README.md) directory contains an optional Linux systemd + Nginx reference configuration. It is an example, not a hosting requirement. Adapt its paths, service account, domain, ports, and TLS setup to your own environment.
@@ -87,7 +87,7 @@ The repository maintains three automated test layers:
 Run all checks locally:
 
 ~~~text
-dotnet test FileUpload.Tests/FileUpload.Tests.csproj --configuration Release
+dotnet test FileWorkspace.Tests/FileWorkspace.Tests.csproj --configuration Release
 npm ci
 npx playwright install chromium
 npm run test:ui
@@ -107,7 +107,7 @@ This project is **source-available**, not Open Source under the OSI definition. 
 
 ## Tiếng Việt
 
-File Upload là file manager tự host theo hướng cloud-style, xây dựng bằng ASP.NET Core. Ứng dụng cung cấp không gian web đơn giản để nhóm người dùng tin cậy tổ chức folder, upload file lớn và tải file từ nơi lưu trữ do chính bạn kiểm soát. Dữ liệu được stream thẳng xuống ổ đĩa, không giữ toàn bộ file trong RAM; trình duyệt hiển thị tiến độ, dung lượng đã gửi và tốc độ hiện tại.
+File Workspace là file manager tự host theo hướng cloud-style, xây dựng bằng ASP.NET Core. Ứng dụng cung cấp không gian web đơn giản để nhóm người dùng tin cậy tổ chức folder, upload file lớn và tải file từ nơi lưu trữ do chính bạn kiểm soát. Dữ liệu được stream thẳng xuống ổ đĩa, không giữ toàn bộ file trong RAM; trình duyệt hiển thị tiến độ, dung lượng đã gửi và tốc độ hiện tại.
 
 Project được chủ đích giữ gọn và độc lập. Hiện tại đây chưa phải cloud drive đa người dùng: chưa có tài khoản, role, link chia sẻ, client đồng bộ, quota, audit trail, object storage từ xa hoặc tích hợp antivirus.
 
@@ -160,10 +160,10 @@ Mở `http://127.0.0.1:5088`, nhập token upload và chọn file. `.env` đã �
 
 Bạn có thể host service ở bất kỳ môi trường nào hỗ trợ ASP.NET Core 10: Windows, Linux x64/ARM64, container, máy ảo, bare metal hoặc cloud platform.
 
-Sau khi publish cho đúng runtime đích, đặt token qua biến môi trường, secret manager của nền tảng hoặc file `.env` cạnh `FileUpload.dll`, rồi chạy:
+Sau khi publish cho đúng runtime đích, đặt token qua biến môi trường, secret manager của nền tảng hoặc file `.env` cạnh `FileWorkspace.dll`, rồi chạy:
 
 ```text
-dotnet FileUpload.dll --urls http://127.0.0.1:5088
+dotnet FileWorkspace.dll --urls http://127.0.0.1:5088
 ```
 
 Thư mục [`deploy/`](deploy/README.md) có cấu hình tham khảo Linux systemd + Nginx. Đây chỉ là ví dụ, không phải yêu cầu về nơi host. Hãy điều chỉnh path, service account, domain, port và TLS cho môi trường của bạn.
@@ -188,7 +188,7 @@ Repository duy trì ba tầng automated test:
 Chạy toàn bộ kiểm tra tại local:
 
 ~~~text
-dotnet test FileUpload.Tests/FileUpload.Tests.csproj --configuration Release
+dotnet test FileWorkspace.Tests/FileWorkspace.Tests.csproj --configuration Release
 npm ci
 npx playwright install chromium
 npm run test:ui

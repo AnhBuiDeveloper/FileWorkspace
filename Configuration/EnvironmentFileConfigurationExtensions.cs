@@ -1,4 +1,4 @@
-namespace FileUpload.Configuration;
+namespace FileWorkspace.Configuration;
 
 public static class EnvironmentFileConfigurationExtensions
 {

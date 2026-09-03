@@ -1,6 +1,6 @@
-using FileUpload.Configuration;
-using FileUpload.Endpoints;
-using FileUpload.Services;
+using FileWorkspace.Configuration;
+using FileWorkspace.Endpoints;
+using FileWorkspace.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +15,7 @@ var app = builder.Build();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
-app.MapFileUploadEndpoints();
+app.MapFileWorkspaceEndpoints();
 
 app.Run();
 

@@ -11,15 +11,15 @@ Các file trong thư mục này là mẫu triển khai file manager tự host tr
 1. Publish đúng runtime của server, hoặc copy output publish sẵn có.
 2. Tạo thư mục `Upload` có quyền ghi cho process chạy ứng dụng.
 3. Đặt `UPLOAD_ACCESS_TOKEN` qua biến môi trường, secret manager, hoặc `.env` cạnh file DLL.
-4. Chạy `dotnet FileUpload.dll --urls http://127.0.0.1:5088`.
+4. Chạy `dotnet FileWorkspace.dll --urls http://127.0.0.1:5088`.
 5. Nếu dùng reverse proxy, chuyển tiếp request tới cổng nội bộ này và tắt request buffering cho endpoint upload.
 
 ### Dùng systemd + Nginx sample
 
-Trước khi dùng, sửa các giá trị hard-code trong `file-upload.service` và `file-upload.nginx.conf`:
+Trước khi dùng, sửa các giá trị hard-code trong `file-workspace.service` và `file-workspace.nginx.conf`:
 
-- `/opt/file-upload`: thư mục cài đặt của bạn.
-- `fileupload`: user/group chạy service, cần quyền ghi `Upload/`.
+- `/opt/file-workspace`: thư mục cài đặt của bạn.
+- `fileworkspace`: user/group chạy service, cần quyền ghi `Upload/`.
 - `127.0.0.1:5088`: cổng nội bộ; đổi nếu trùng.
 - `server_name _`: domain của bạn.
 
@@ -34,15 +34,15 @@ The files in this directory are Linux deployment examples for the self-hosted fi
 1. Publish for the server's runtime, or copy existing published output.
 2. Create an `Upload` directory writable by the application process.
 3. Set `UPLOAD_ACCESS_TOKEN` through an environment variable, secret manager, or `.env` file beside the DLL.
-4. Run `dotnet FileUpload.dll --urls http://127.0.0.1:5088`.
+4. Run `dotnet FileWorkspace.dll --urls http://127.0.0.1:5088`.
 5. When using a reverse proxy, forward requests to that internal port and disable request buffering for the upload endpoint.
 
 ### Using the systemd + Nginx example
 
-Before using it, replace the hard-coded values in `file-upload.service` and `file-upload.nginx.conf`:
+Before using it, replace the hard-coded values in `file-workspace.service` and `file-workspace.nginx.conf`:
 
-- `/opt/file-upload`: your installation directory.
-- `fileupload`: the service user/group; it needs write access to `Upload/`.
+- `/opt/file-workspace`: your installation directory.
+- `fileworkspace`: the service user/group; it needs write access to `Upload/`.
 - `127.0.0.1:5088`: the internal port; change it if occupied.
 - `server_name _`: your domain name.
 

@@ -1,4 +1,4 @@
-namespace FileUpload.Models;
+namespace FileWorkspace.Models;
 
 public sealed record ErrorResponse(string Error);
 public sealed record CreateFolderRequest(string ParentPath, string Name);

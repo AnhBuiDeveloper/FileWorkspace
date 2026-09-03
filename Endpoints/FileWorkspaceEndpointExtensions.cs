@@ -1,11 +1,11 @@
-using FileUpload.Models;
-using FileUpload.Services;
+using FileWorkspace.Models;
+using FileWorkspace.Services;
 
-namespace FileUpload.Endpoints;
+namespace FileWorkspace.Endpoints;
 
-public static class FileUploadEndpointExtensions
+public static class FileWorkspaceEndpointExtensions
 {
-    public static IEndpointRouteBuilder MapFileUploadEndpoints(this IEndpointRouteBuilder endpoints)
+    public static IEndpointRouteBuilder MapFileWorkspaceEndpoints(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapPost("/api/uploads", async (HttpContext context, FileManagerService files, UploadTokenValidator token) =>
         {
