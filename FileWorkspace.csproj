@@ -5,6 +5,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="**/*.Tests/**/*.cs" />
+    <Compile Remove="FileWorkspace.Tests/**/*.cs;**/bin/**/*.cs;**/obj/**/*.cs" />
   </ItemGroup>
 </Project>
