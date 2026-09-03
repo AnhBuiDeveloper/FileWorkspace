@@ -1,9 +1,21 @@
-# Commercial licensing
+# Commercial licensing / Giấy phép thương mại
+
+## English
+
+The PolyForm Noncommercial License does not grant commercial-use rights.
+
+If you want to use File Upload in a product, service, production/staging environment, or other commercial activity, obtain a separate written commercial license from the copyright holder before use.
+
+Contact [anh.bui@anhbui.dev](mailto:anh.bui@anhbui.dev). If there is no response, use [btanh82@gmail.com](mailto:btanh82@gmail.com). Do not send tokens, customer data, or other sensitive information in public GitHub issues.
+
+This document does not itself grant a commercial license. It is general information, not legal advice.
+
+## Tiếng Việt
 
 PolyForm Noncommercial License không cấp quyền dùng thương mại.
 
-Muốn dùng File Upload trong sản phẩm, dịch vụ, môi trường vận hành hoặc hoạt động có mục đích thương mại, cần có commercial license bằng văn bản từ chủ sở hữu bản quyền trước.
+Nếu muốn dùng File Upload trong sản phẩm, dịch vụ, môi trường production/staging hoặc hoạt động có mục đích thương mại, cần có commercial license bằng văn bản riêng từ chủ sở hữu bản quyền trước khi sử dụng.
 
-Để trao đổi, liên hệ [anh.bui@anhbui.dev](mailto:anh.bui@anhbui.dev). Nếu không nhận được phản hồi, dùng [btanh82@gmail.com](mailto:btanh82@gmail.com). Không gửi token, dữ liệu khách hàng hoặc thông tin nhạy cảm qua issue công khai.
+Liên hệ [anh.bui@anhbui.dev](mailto:anh.bui@anhbui.dev). Nếu không nhận được phản hồi, dùng [btanh82@gmail.com](mailto:btanh82@gmail.com). Không gửi token, dữ liệu khách hàng hoặc thông tin nhạy cảm qua GitHub issue công khai.
 
-Tài liệu này không tự cấp bất kỳ commercial license nào.
+Tài liệu này không tự cấp commercial license và không phải tư vấn pháp lý.
