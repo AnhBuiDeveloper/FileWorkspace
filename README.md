@@ -73,6 +73,7 @@ The [`deploy/`](deploy/README.md) directory contains an optional Linux systemd +
 ### Security, contributions, and licensing
 
 Read [SECURITY.md](SECURITY.md) before reporting a vulnerability, and [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+UI contributions must also meet the [Responsive UI standard](UI-STANDARDS.md).
 
 This project is **source-available**, not Open Source under the OSI definition. It is licensed under the [PolyForm Noncommercial License 1.0.0](LICENSE). Non-commercial use, modification, and distribution are permitted; commercial use requires a separate written agreement. See [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md), [NOTICE](NOTICE), and [ENFORCEMENT.md](ENFORCEMENT.md).
 
@@ -147,5 +148,6 @@ Thư mục [`deploy/`](deploy/README.md) có cấu hình tham khảo Linux syste
 ### Bảo mật, đóng góp và license
 
 Đọc [SECURITY.md](SECURITY.md) trước khi báo lỗ hổng và [CONTRIBUTING.md](CONTRIBUTING.md) trước khi mở pull request.
+Thay đổi UI cũng phải đạt [Tiêu chuẩn UI responsive](UI-STANDARDS.md).
 
 Đây là dự án **source-available**, không phải Open Source theo định nghĩa OSI. Mã nguồn dùng [PolyForm Noncommercial License 1.0.0](LICENSE): được dùng, sửa và phân phối cho mục đích phi thương mại; mục đích thương mại cần một thỏa thuận bằng văn bản riêng. Xem [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md), [NOTICE](NOTICE) và [ENFORCEMENT.md](ENFORCEMENT.md).

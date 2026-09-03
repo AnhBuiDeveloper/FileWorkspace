@@ -8,6 +8,7 @@ Contributions are welcome. Before opening a pull request:
 - Do not add a dependency whose license conflicts with [LICENSE](LICENSE).
 - Update documentation and tests whenever behavior changes.
 - Keep changes focused and explain the user-visible impact in the pull request.
+- For UI changes, follow [UI-STANDARDS.md](UI-STANDARDS.md) and include its review checklist in the pull request.
 
 ### Developer Certificate of Origin
 
@@ -35,6 +36,7 @@ Hoan nghênh đóng góp. Trước khi mở pull request:
 - Không thêm dependency có license xung đột với [LICENSE](LICENSE).
 - Cập nhật tài liệu và test khi thay đổi hành vi.
 - Giữ thay đổi tập trung và mô tả ảnh hưởng với người dùng trong pull request.
+- Với thay đổi UI, tuân thủ [UI-STANDARDS.md](UI-STANDARDS.md) và đưa checklist review của tài liệu này vào pull request.
 
 ### Developer Certificate of Origin
 
