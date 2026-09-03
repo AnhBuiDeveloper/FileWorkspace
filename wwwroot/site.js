@@ -8,12 +8,78 @@ const panel = document.querySelector('#upload-panel');
 const uploadList = document.querySelector('#upload-list');
 const uploadCount = document.querySelector('#upload-count');
 const status = document.querySelector('#status');
+const languageSelect = document.querySelector('#language-select');
+
+const translations = {
+  vi: {
+    documentTitle: 'File Upload',
+    languageLabel: 'Ngôn ngữ',
+    title: 'Gửi file nhanh',
+    hint: 'Chọn nhiều file. Mỗi file có tiến độ riêng và có thể pause, resume hoặc stop.',
+    tokenLabel: 'Upload token',
+    tokenPlaceholder: 'Nhập token để upload',
+    chooseFile: 'Chọn file',
+    orDrop: 'hoặc kéo thả vào đây',
+    pickerNote: 'Có thể chọn nhiều file · tối đa 3 file truyền đồng thời',
+    uploadListTitle: 'Đang gửi file',
+    tokenRequired: 'Nhập upload token trước.',
+    states: { preparing: 'Đang chuẩn bị…', queued: 'Đang chờ…', uploading: 'Đang upload…', paused: 'Đã tạm dừng', stopped: 'Đã dừng', completed: 'Hoàn tất', error: 'Có lỗi' },
+    buttons: { pause: 'Pause', resume: 'Resume', stop: 'Stop' },
+    errors: {
+      createSession: 'Không thể tạo phiên upload.',
+      invalidResponse: 'Phản hồi server không hợp lệ.',
+      connection: 'Không kết nối được server.',
+      uploadFailed: 'Upload thất bại.',
+      invalidFileName: 'Tên file không hợp lệ.',
+      invalidFileSize: 'Dung lượng file không hợp lệ.',
+      sessionNotFound: 'Phiên upload không tồn tại hoặc đã kết thúc.',
+      invalidChunk: 'Chunk không hợp lệ.',
+      invalidChunkSize: 'Kích thước chunk không hợp lệ.',
+      incompleteChunk: 'Dữ liệu chunk chưa hoàn chỉnh.'
+    }
+  },
+  en: {
+    documentTitle: 'File Upload',
+    languageLabel: 'Language',
+    title: 'Fast file upload',
+    hint: 'Select multiple files. Each upload has its own progress and can be paused, resumed, or stopped.',
+    tokenLabel: 'Upload token',
+    tokenPlaceholder: 'Enter upload token',
+    chooseFile: 'Choose files',
+    orDrop: 'or drag and drop them here',
+    pickerNote: 'Multiple files supported · up to 3 files upload at once',
+    uploadListTitle: 'Uploads',
+    tokenRequired: 'Enter the upload token first.',
+    states: { preparing: 'Preparing…', queued: 'Queued', uploading: 'Uploading…', paused: 'Paused', stopped: 'Stopped', completed: 'Completed', error: 'Error' },
+    buttons: { pause: 'Pause', resume: 'Resume', stop: 'Stop' },
+    errors: {
+      createSession: 'Could not create the upload session.',
+      invalidResponse: 'The server returned an invalid response.',
+      connection: 'Could not connect to the server.',
+      uploadFailed: 'Upload failed.',
+      invalidFileName: 'The file name is invalid.',
+      invalidFileSize: 'The file size is invalid.',
+      sessionNotFound: 'The upload session does not exist or has ended.',
+      invalidChunk: 'The upload chunk is invalid.',
+      invalidChunkSize: 'The upload chunk size is invalid.',
+      incompleteChunk: 'The upload chunk is incomplete.'
+    }
+  }
+};
 
 const uploads = [];
 let activeTransfers = 0;
+let currentLanguage = localStorage.getItem('file-upload-language') || (navigator.language.startsWith('vi') ? 'vi' : 'en');
 
 tokenInput.value = sessionStorage.getItem('upload-token') || '';
 tokenInput.addEventListener('input', () => sessionStorage.setItem('upload-token', tokenInput.value));
+languageSelect.value = currentLanguage;
+languageSelect.addEventListener('change', () => {
+  currentLanguage = languageSelect.value;
+  localStorage.setItem('file-upload-language', currentLanguage);
+  applyLanguage();
+});
+applyLanguage();
 
 fileInput.addEventListener('change', () => {
   addFiles(fileInput.files);
@@ -36,7 +102,7 @@ function addFiles(fileList) {
 
   const token = tokenInput.value.trim();
   if (!token) {
-    setStatus('Nhập upload token trước.', 'error');
+    setStatus(t('tokenRequired'), 'error');
     tokenInput.focus();
     return;
   }
@@ -108,7 +174,7 @@ class UploadTask {
     } catch (error) {
       if (this.state !== 'stopped') {
         this.state = 'error';
-        this.error = error.message || 'Không thể tạo phiên upload.';
+        this.error = localizeError(error.message || t('errors.createSession'));
       }
     }
     this.render();
@@ -139,7 +205,7 @@ class UploadTask {
     } catch (error) {
       if (this.state !== 'paused' && this.state !== 'stopped') {
         this.state = 'error';
-        this.error = error.message || 'Upload thất bại.';
+        this.error = localizeError(error.message || t('errors.uploadFailed'));
       }
     } finally {
       this.xhr = null;
@@ -177,14 +243,14 @@ class UploadTask {
           try {
             resolve(JSON.parse(xhr.responseText));
           } catch {
-            reject(new Error('Phản hồi server không hợp lệ.'));
+            reject(new Error(t('errors.invalidResponse')));
           }
           return;
         }
         reject(new Error(readXhrError(xhr) || `Upload lỗi (${xhr.status}).`));
       };
-      xhr.onerror = () => reject(new Error('Không kết nối được server.'));
-      xhr.onabort = () => reject(new DOMException('Upload bị tạm dừng.', 'AbortError'));
+      xhr.onerror = () => reject(new Error(t('errors.connection')));
+      xhr.onabort = () => reject(new DOMException(t('states.paused'), 'AbortError'));
       xhr.send(chunk);
     });
   }
@@ -236,15 +302,7 @@ class UploadTask {
     }
 
     const percent = this.file.size ? Math.min(100, Math.round((displayedBytes / this.file.size) * 100)) : 100;
-    const statusText = {
-      preparing: 'Đang chuẩn bị…',
-      queued: 'Đang chờ…',
-      uploading: 'Đang upload…',
-      paused: 'Đã tạm dừng',
-      stopped: 'Đã dừng',
-      completed: 'Hoàn tất',
-      error: 'Có lỗi'
-    }[this.state];
+    const statusText = t(`states.${this.state}`);
 
     this.element.className = `upload-item ${this.state}`;
     this.element.replaceChildren();
@@ -278,13 +336,13 @@ class UploadTask {
     controls.className = 'upload-controls';
 
     if (['preparing', 'queued', 'uploading'].includes(this.state)) {
-      controls.append(button('Pause', 'secondary', () => this.pause()));
-      controls.append(button('Stop', 'danger', () => this.stop()));
+      controls.append(button(t('buttons.pause'), 'secondary', () => this.pause()));
+      controls.append(button(t('buttons.stop'), 'danger', () => this.stop()));
     } else if (this.state === 'paused') {
-      controls.append(button('Resume', 'primary', () => this.resume()));
-      controls.append(button('Stop', 'danger', () => this.stop()));
+      controls.append(button(t('buttons.resume'), 'primary', () => this.resume()));
+      controls.append(button(t('buttons.stop'), 'danger', () => this.stop()));
     } else if (this.state === 'error') {
-      controls.append(button('Stop', 'danger', () => this.stop()));
+      controls.append(button(t('buttons.stop'), 'danger', () => this.stop()));
     }
 
     footer.append(stats, controls);
@@ -320,12 +378,44 @@ function readXhrError(xhr) {
 function updateUploadCount() {
   const active = uploads.filter(upload => ['preparing', 'queued', 'uploading', 'paused'].includes(upload.state)).length;
   panel.hidden = uploads.length === 0;
-  uploadCount.textContent = active ? `${active} file` : `${uploads.length} file`;
+  const count = active || uploads.length;
+  uploadCount.textContent = currentLanguage === 'vi' ? `${count} file` : `${count} file${count === 1 ? '' : 's'}`;
 }
 
 function setStatus(message, className) {
   status.textContent = message;
   status.className = `status ${className}`.trim();
+}
+
+function applyLanguage() {
+  document.documentElement.lang = currentLanguage;
+  document.title = t('documentTitle');
+  document.querySelectorAll('[data-i18n]').forEach(element => {
+    element.textContent = t(element.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+    element.placeholder = t(element.dataset.i18nPlaceholder);
+  });
+  languageSelect.setAttribute('aria-label', t('languageLabel'));
+  panel.setAttribute('aria-label', t('uploadListTitle'));
+  uploads.forEach(upload => upload.render());
+  updateUploadCount();
+}
+
+function t(key) {
+  return key.split('.').reduce((value, part) => value?.[part], translations[currentLanguage]) || key;
+}
+
+function localizeError(message) {
+  const knownErrors = {
+    'Tên file không hợp lệ.': 'invalidFileName',
+    'Dung lượng file không hợp lệ.': 'invalidFileSize',
+    'Phiên upload không tồn tại hoặc đã kết thúc.': 'sessionNotFound',
+    'Chunk không hợp lệ.': 'invalidChunk',
+    'Kích thước chunk không hợp lệ.': 'invalidChunkSize',
+    'Dữ liệu chunk chưa hoàn chỉnh.': 'incompleteChunk'
+  };
+  return knownErrors[message] ? t(`errors.${knownErrors[message]}`) : message;
 }
 
 function formatBytes(bytes) {

@@ -9,25 +9,34 @@
 </head>
 <body>
   <main class="card">
-    <p class="eyebrow">FILE UPLOAD</p>
-    <h1>Gửi file nhanh</h1>
-    <p class="hint">Chọn nhiều file. Mỗi file có tiến độ riêng và có thể pause, resume hoặc stop.</p>
+    <div class="top-line">
+      <p class="eyebrow">FILE UPLOAD</p>
+      <label class="language-picker" for="language-select">
+        <span class="sr-only" data-i18n="languageLabel">Ngôn ngữ</span>
+        <select id="language-select" aria-label="Ngôn ngữ">
+          <option value="vi">Tiếng Việt</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+    </div>
+    <h1 data-i18n="title">Gửi file nhanh</h1>
+    <p class="hint" data-i18n="hint">Chọn nhiều file. Mỗi file có tiến độ riêng và có thể pause, resume hoặc stop.</p>
 
     <label class="token-field" for="upload-token">
-      Upload token
-      <input id="upload-token" type="password" autocomplete="off" placeholder="Nhập token để upload">
+      <span data-i18n="tokenLabel">Upload token</span>
+      <input id="upload-token" type="password" autocomplete="off" data-i18n-placeholder="tokenPlaceholder" placeholder="Nhập token để upload">
     </label>
 
     <label class="picker" id="drop-zone" for="file-input">
       <span class="picker-icon">↑</span>
-      <span><strong>Chọn file</strong> hoặc kéo thả vào đây</span>
-      <small>Có thể chọn nhiều file · tối đa 3 file truyền đồng thời</small>
+      <span><strong data-i18n="chooseFile">Chọn file</strong> <span data-i18n="orDrop">hoặc kéo thả vào đây</span></span>
+      <small data-i18n="pickerNote">Có thể chọn nhiều file · tối đa 3 file truyền đồng thời</small>
       <input id="file-input" type="file" multiple hidden>
     </label>
 
     <section id="upload-panel" class="upload-panel" hidden aria-live="polite" aria-label="Danh sách upload">
       <div class="upload-heading">
-        <h2>Đang gửi file</h2>
+        <h2 data-i18n="uploadListTitle">Đang gửi file</h2>
         <span id="upload-count"></span>
       </div>
       <div id="upload-list" class="upload-list"></div>

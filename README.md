@@ -13,6 +13,7 @@ File Upload is a lightweight ASP.NET Core application for receiving large files 
 - Upload multiple files through file selection or drag and drop.
 - Per-file progress, percentage, transferred size, and upload speed.
 - Pause, resume, or stop each file independently.
+- English and Vietnamese interface, with the selected language remembered in the browser.
 - Token-protected upload endpoint using `UPLOAD_ACCESS_TOKEN`.
 - Direct-to-disk streaming for large uploads.
 - Resumable chunk uploads; temporary `.uploading` files are atomically renamed after a successful upload.
@@ -83,6 +84,7 @@ File Upload là ứng dụng ASP.NET Core gọn nhẹ để nhận file dung lư
 - Upload nhiều file bằng chọn file hoặc kéo-thả.
 - Hiển thị tiến độ, phần trăm, dung lượng đã gửi và tốc độ upload riêng cho từng file.
 - Pause, resume hoặc stop từng file độc lập.
+- Giao diện Anh và Việt; trình duyệt ghi nhớ ngôn ngữ đã chọn.
 - Endpoint upload được bảo vệ bằng token `UPLOAD_ACCESS_TOKEN`.
 - Stream trực tiếp xuống ổ đĩa, phù hợp với file lớn.
 - Upload theo chunk có thể resume; file tạm có đuôi `.uploading` chỉ được đổi tên nguyên tử sau khi upload thành công.
