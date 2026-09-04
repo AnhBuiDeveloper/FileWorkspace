@@ -7,6 +7,8 @@ public sealed record FileListing(string Path, IReadOnlyList<FileManagerEntry> En
 public sealed record UploadStartResponse(string UploadId, int ChunkSize, bool Completed, long UploadedBytes, string? FileName = null);
 public sealed record UploadChunkResponse(long UploadedBytes, bool Completed, string? FileName = null);
 public sealed record DownloadDescriptor(string AbsolutePath, string FileName);
+public sealed record ArchiveSource(string AbsolutePath, string EntryName, bool IsDirectory);
+public sealed record ArchiveDownload(IReadOnlyList<ArchiveSource> Sources);
 
 public static class UploadProtocol
 {

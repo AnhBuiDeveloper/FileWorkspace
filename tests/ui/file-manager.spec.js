@@ -57,6 +57,24 @@ test('creates a folder and uploads a file into it', async ({ page }) => {
   await expect(page.getByRole('button', { name: fileName, exact: true })).toBeHidden();
 });
 
+test('selects multiple files and folders for a ZIP download', async ({ page }) => {
+  await signIn(page);
+  const folderName = 'zip-' + Date.now();
+  const fileName = 'zip-proof.txt';
+
+  await page.getByRole('button', { name: 'New folder' }).click();
+  await page.locator('#folder-name').fill(folderName);
+  await page.getByRole('button', { name: 'Create folder', exact: true }).click();
+  await page.locator('#file-input').setInputFiles({ name: fileName, mimeType: 'text/plain', buffer: Buffer.from('ZIP download test') });
+  await expect(page.getByRole('button', { name: fileName, exact: true })).toBeVisible();
+
+  await page.getByLabel(`Select ${folderName}`).check();
+  await page.getByLabel(`Select ${fileName}`).check();
+  await expect(page.getByRole('button', { name: `Download ZIP (2)`, exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: `Download ZIP (2)`, exact: true }).click();
+  await expect(page.getByRole('status')).toHaveText('ZIP download has started.');
+});
+
 test('renders the Explorer tree and keeps the compact layout within the viewport', async ({ page }) => {
   await signIn(page);
   const folderName = 'tree-' + Date.now();
