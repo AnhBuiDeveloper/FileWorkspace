@@ -58,3 +58,14 @@ test('renders the Explorer tree and keeps the compact layout within the viewport
   await expect(page.locator('#sidebar')).toHaveClass(/is-open/);
   expect(await page.locator('body').evaluate(body => body.scrollWidth <= window.innerWidth)).toBeTruthy();
 });
+
+test('keeps the file workspace in the main grid column on desktop', async ({ page }) => {
+  await signIn(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+
+  expect(await page.locator('.workspace-main').evaluate(element => {
+    const main = element.getBoundingClientRect();
+    const sidebar = document.querySelector('#sidebar').getBoundingClientRect();
+    return main.left >= sidebar.right && main.width > 900;
+  })).toBeTruthy();
+});
