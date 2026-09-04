@@ -12,7 +12,7 @@ Các file trong thư mục này là mẫu triển khai file manager tự host tr
 2. Tạo thư mục `Upload` có quyền ghi cho process chạy ứng dụng.
 3. Đặt `UPLOAD_ACCESS_TOKEN` qua biến môi trường, secret manager, hoặc `.env` cạnh file DLL.
 4. Chạy `dotnet FileWorkspace.dll --urls http://127.0.0.1:5088`.
-5. Nếu dùng reverse proxy, chuyển tiếp request tới cổng nội bộ này và tắt request buffering cho endpoint upload.
+5. Nếu dùng reverse proxy, chuyển tiếp request tới cổng nội bộ này, tắt request buffering cho upload và không buffer response ZIP để download bắt đầu ngay, không tạo archive tạm ở proxy.
 
 ### Dùng systemd + Nginx sample
 
@@ -35,7 +35,7 @@ The files in this directory are Linux deployment examples for the self-hosted fi
 2. Create an `Upload` directory writable by the application process.
 3. Set `UPLOAD_ACCESS_TOKEN` through an environment variable, secret manager, or `.env` file beside the DLL.
 4. Run `dotnet FileWorkspace.dll --urls http://127.0.0.1:5088`.
-5. When using a reverse proxy, forward requests to that internal port and disable request buffering for the upload endpoint.
+5. When using a reverse proxy, forward requests to that internal port, disable request buffering for uploads, and avoid buffering streamed ZIP responses so downloads can start immediately without proxy-side temporary archives.
 
 ### Using the systemd + Nginx example
 
