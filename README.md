@@ -39,6 +39,10 @@ For Internet-facing or multi-user use, add an authentication model, authorizatio
 - A writable `Upload/` directory in the application's content root.
 - A value for `UPLOAD_ACCESS_TOKEN`. The service intentionally refuses to start without one.
 
+### Download a release
+
+To run File Workspace without cloning source code, download the matching prebuilt package from the [latest GitHub release](https://github.com/AnhBuiDeveloper/FileWorkspace/releases/latest): Windows x64, Linux x64, or Linux ARM64. These packages are framework-dependent, so install ASP.NET Core Runtime 10 first. After extracting the package, create `.env` next to `FileWorkspace.dll`, set `UPLOAD_ACCESS_TOKEN`, and run `dotnet FileWorkspace.dll`. Verify the downloaded archive against `SHA256SUMS.txt` included with each release.
+
 ### Quick start
 
 Create `.env` in the repository root:
@@ -148,6 +152,10 @@ Nếu public Internet hoặc phục vụ nhiều người dùng, hãy bổ sung 
 - .NET SDK 10 để build hoặc chạy từ source; ASP.NET Core Runtime 10 để chạy bản đã publish.
 - Process chạy ứng dụng cần quyền ghi vào thư mục `Upload/` trong content root.
 - Bắt buộc có `UPLOAD_ACCESS_TOKEN`; service sẽ không khởi động nếu thiếu token.
+
+### Tải bản phát hành
+
+Không cần clone source code: tải package build sẵn đúng nền tảng từ [GitHub release mới nhất](https://github.com/AnhBuiDeveloper/FileWorkspace/releases/latest): Windows x64, Linux x64 hoặc Linux ARM64. Các package là framework-dependent nên cần cài ASP.NET Core Runtime 10 trước. Sau khi giải nén, tạo `.env` cạnh `FileWorkspace.dll`, đặt `UPLOAD_ACCESS_TOKEN`, rồi chạy `dotnet FileWorkspace.dll`. Hãy kiểm tra archive đã tải bằng `SHA256SUMS.txt` đi kèm mỗi release.
 
 ### Khởi chạy nhanh
 
