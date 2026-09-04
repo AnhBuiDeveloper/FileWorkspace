@@ -272,7 +272,7 @@ class UploadTask {
 
   pause() { if (!['preparing', 'queued', 'uploading'].includes(this.state)) return; this.state = 'paused'; this.resetSpeed(); this.xhr?.abort(); this.render(); updateUploadCount(); }
   resume() { if (this.state !== 'paused') return; this.state = this.uploadId ? 'queued' : 'preparing'; this.error = ''; this.render(); scheduleUploads(); }
-  async stop() { if (['stopped', 'completed'].includes(this.state)) return; this.state = 'stopped'; this.resetSpeed(); this.xhr?.abort(); this.render(); updateUploadCount(); await this.deleteSession(); }
+  async stop() { if (['stopped', 'completed'].includes(this.state)) return; this.state = 'stopped'; this.resetSpeed(); this.xhr?.abort(); this.remove(); await this.deleteSession(); }
   async deleteSession() { if (!this.uploadId) return; try { await fetch(`/api/uploads/${this.uploadId}`, { method: 'DELETE', headers: { 'X-Upload-Token': this.token } }); } catch { /* local state is already stopped */ } }
 
   complete() {
@@ -280,12 +280,13 @@ class UploadTask {
     this.state = 'completed'; this.uploadedBytes = this.file.size; this.resetSpeed();
     newFilePaths.add(joinPath(this.targetPath, this.file.name));
     if (currentPath === this.targetPath) loadFiles();
-    window.setTimeout(() => {
-      const index = uploads.indexOf(this);
-      if (index >= 0) uploads.splice(index, 1);
-      this.element?.remove();
-      updateUploadCount();
-    }, 0);
+    window.setTimeout(() => this.remove(), 0);
+  }
+
+  remove() {
+    const index = uploads.indexOf(this);
+    if (index >= 0) uploads.splice(index, 1);
+    this.element?.remove(); updateUploadCount();
   }
 
   render(displayedBytes = this.uploadedBytes) {
