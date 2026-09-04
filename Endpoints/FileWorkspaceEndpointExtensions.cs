@@ -1,5 +1,6 @@
 using FileWorkspace.Models;
 using FileWorkspace.Services;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace FileWorkspace.Endpoints;
 
@@ -53,6 +54,20 @@ public static class FileWorkspaceEndpointExtensions
             {
                 var download = files.GetDownload(form["path"].ToString());
                 return Results.File(download.AbsolutePath, "application/octet-stream", fileDownloadName: download.FileName, enableRangeProcessing: true);
+            }
+            catch (FileManagerException exception) { return Error(exception); }
+        });
+
+        endpoints.MapPost("/api/files/archive", async (HttpContext context, FileManagerService files, UploadTokenValidator token) =>
+        {
+            var form = await context.Request.ReadFormAsync(context.RequestAborted);
+            if (!token.Matches(form["token"].ToString())) return Results.Unauthorized();
+            try
+            {
+                var archive = files.GetArchive(form["path"]);
+                var bodyControl = context.Features.Get<IHttpBodyControlFeature>();
+                if (bodyControl is not null) bodyControl.AllowSynchronousIO = true;
+                return Results.Stream(stream => files.WriteArchiveAsync(archive, stream, context.RequestAborted), "application/zip", fileDownloadName: "FileWorkspace-download.zip");
             }
             catch (FileManagerException exception) { return Error(exception); }
         });

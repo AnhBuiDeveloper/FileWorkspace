@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.IO.Compression;
 using System.Text;
 using FileWorkspace.Models;
 using FileWorkspace.Tests.TestSupport;
@@ -76,6 +77,18 @@ public sealed class FileManagerApiTests
         var downloadResponse = await client.PostAsync("/api/files/download", download);
         downloadResponse.EnsureSuccessStatusCode();
         Assert.Equal(bytes, await downloadResponse.Content.ReadAsByteArrayAsync());
+
+        var archive = new FormUrlEncodedContent(new[]
+        {
+            new KeyValuePair<string, string>("token", TestWebApplicationFactory.AccessToken),
+            new KeyValuePair<string, string>("path", folder)
+        });
+        var archiveResponse = await client.PostAsync("/api/files/archive", archive);
+        archiveResponse.EnsureSuccessStatusCode();
+        await using var archiveContent = new MemoryStream(await archiveResponse.Content.ReadAsByteArrayAsync());
+        using var zip = new ZipArchive(archiveContent, ZipArchiveMode.Read);
+        var archiveEntry = zip.GetEntry($"{folder}/proof.txt");
+        Assert.NotNull(archiveEntry);
 
         var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, $"/api/files?path={folder}/proof.txt");
         deleteRequest.Headers.Add("X-Upload-Token", TestWebApplicationFactory.AccessToken);

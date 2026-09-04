@@ -12,7 +12,7 @@ It is deliberately small and self-contained. Today it is not a multi-tenant clou
 
 ### Highlights
 
-- Browse the file workspace, navigate folders, create folders, download files, and permanently delete files after confirmation.
+- Browse the file workspace, navigate folders, create folders, download individual or selected files/folders as a ZIP archive, and permanently delete files after confirmation.
 - Upload multiple files through selection or drag and drop, including an entire local folder.
 - Upload to the currently open folder, with independent per-file progress, speed, pause, resume, and stop controls.
 - Stream large files directly to disk with resumable chunk uploads.
@@ -82,7 +82,7 @@ The repository maintains three automated test layers:
 
 - Unit tests for token validation and file-manager storage behavior.
 - API integration tests that exercise the real ASP.NET Core routes in an isolated workspace.
-- Playwright UI tests in Chromium for token persistence, localization, folder creation, upload, and confirmed file deletion.
+- Playwright UI tests in Chromium for token persistence, localization, folder creation, upload flow, selected ZIP downloads, and confirmed file deletion.
 
 Run all checks locally:
 
@@ -113,7 +113,7 @@ Project được chủ đích giữ gọn và độc lập. Hiện tại đây c
 
 ### Điểm nổi bật
 
-- Duyệt không gian file, đi vào folder, tạo folder, tải xuống file và xóa vĩnh viễn file sau khi xác nhận.
+- Duyệt không gian file, đi vào folder, tạo folder, tải file riêng lẻ hoặc nhiều file/folder đã chọn dưới dạng ZIP, xóa vĩnh viễn file sau khi xác nhận.
 - Upload nhiều file bằng chọn file hoặc kéo-thả, gồm cả một local folder.
 - Upload vào folder đang mở; mỗi file có tiến độ, tốc độ, pause, resume và stop độc lập.
 - Stream file lớn trực tiếp xuống ổ đĩa bằng upload theo chunk có thể resume.
@@ -183,7 +183,7 @@ Repository duy trì ba tầng automated test:
 
 - Unit test cho token validation và hành vi lưu trữ của file manager.
 - API integration test chạy route ASP.NET Core thật trong workspace cô lập.
-- Playwright UI test trên Chromium cho lưu token, đổi ngôn ngữ, tạo folder, upload và xóa file có xác nhận.
+- Playwright UI test trên Chromium cho lưu token, đổi ngôn ngữ, tạo folder, upload, tải ZIP các mục đã chọn và xóa file có xác nhận.
 
 Chạy toàn bộ kiểm tra tại local:
 

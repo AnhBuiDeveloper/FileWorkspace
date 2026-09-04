@@ -1,4 +1,5 @@
 using System.Text;
+using System.IO.Compression;
 using FileWorkspace.Models;
 using FileWorkspace.Services;
 using FileWorkspace.Tests.TestSupport;
@@ -61,6 +62,29 @@ public sealed class FileManagerServiceTests
 
         Assert.Equal("report.txt", firstResult.FileName);
         Assert.Equal("report (1).txt", secondResult.FileName);
+    }
+
+    [Fact]
+    public async Task Archive_preserves_selected_file_and_folder_contents()
+    {
+        using var workspace = new TemporaryWorkspace();
+        var service = new FileManagerService(workspace.Environment);
+        service.CreateFolder(new CreateFolderRequest("", "documents"));
+        var bytes = Encoding.UTF8.GetBytes("archive content");
+        var upload = await service.StartUploadAsync("note.txt", "documents", bytes.Length, CancellationToken.None);
+        await service.WriteChunkAsync(upload.UploadId, 0, bytes.Length, new MemoryStream(bytes), CancellationToken.None);
+
+        var archive = service.GetArchive(["documents", "documents/note.txt"]);
+        await using var output = new MemoryStream();
+        await service.WriteArchiveAsync(archive, output, CancellationToken.None);
+        output.Position = 0;
+        using var zip = new ZipArchive(output, ZipArchiveMode.Read);
+
+        var entry = zip.GetEntry("documents/note.txt");
+        Assert.NotNull(entry);
+        await using var input = entry!.Open();
+        using var reader = new StreamReader(input);
+        Assert.Equal("archive content", await reader.ReadToEndAsync());
     }
 
     [Fact]

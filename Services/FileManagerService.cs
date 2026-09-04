@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Collections.Concurrent;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using FileWorkspace.Models;
 
@@ -139,6 +140,42 @@ public sealed class FileManagerService
         return new DownloadDescriptor(filePath, Path.GetFileName(filePath));
     }
 
+    public ArchiveDownload GetArchive(IEnumerable<string> encodedPaths)
+    {
+        var paths = encodedPaths.Where(path => !string.IsNullOrWhiteSpace(path)).ToArray();
+        if (paths.Length == 0) throw BadRequest("Cần chọn ít nhất một file hoặc folder.");
+
+        var sources = new List<ArchiveSource>();
+        var entryNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var encodedPath in paths)
+        {
+            var relativePath = NormalizeRelativePath(encodedPath);
+            if (string.IsNullOrEmpty(relativePath) || IsTemporaryUpload(Path.GetFileName(relativePath))) throw NotFound("File hoặc folder không tồn tại.");
+            var absolutePath = ResolvePath(relativePath);
+            if (absolutePath is null) throw BadRequest("Đường dẫn file hoặc folder không hợp lệ.");
+
+            if (File.Exists(absolutePath)) AddArchiveSource(absolutePath, false, sources, entryNames);
+            else if (Directory.Exists(absolutePath)) AddDirectorySources(absolutePath, sources, entryNames);
+            else throw NotFound("File hoặc folder không tồn tại.");
+        }
+
+        return new ArchiveDownload(sources);
+    }
+
+    public async Task WriteArchiveAsync(ArchiveDownload archive, Stream destination, CancellationToken cancellationToken)
+    {
+        using var zip = new ZipArchive(destination, ZipArchiveMode.Create, leaveOpen: true);
+        foreach (var source in archive.Sources)
+        {
+            var entry = zip.CreateEntry(source.EntryName, source.IsDirectory ? CompressionLevel.NoCompression : CompressionLevel.Fastest);
+            if (source.IsDirectory) continue;
+
+            await using var input = new FileStream(source.AbsolutePath, FileMode.Open, FileAccess.Read, FileShare.Read, UploadProtocol.CopyBufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            await using var output = entry.Open();
+            await input.CopyToAsync(output, UploadProtocol.CopyBufferSize, cancellationToken);
+        }
+    }
+
     public void DeleteFile(string encodedPath)
     {
         var relativePath = NormalizeRelativePath(encodedPath);
@@ -164,6 +201,22 @@ public sealed class FileManagerService
             _reservedPaths.TryAdd(reservationKey, 0);
             return candidate;
         }
+    }
+
+    private void AddDirectorySources(string directoryPath, List<ArchiveSource> sources, HashSet<string> entryNames)
+    {
+        AddArchiveSource(directoryPath, true, sources, entryNames);
+        foreach (var directory in Directory.EnumerateDirectories(directoryPath, "*", SearchOption.AllDirectories))
+            AddArchiveSource(directory, true, sources, entryNames);
+        foreach (var file in Directory.EnumerateFiles(directoryPath, "*", SearchOption.AllDirectories))
+            if (!IsTemporaryUpload(Path.GetFileName(file))) AddArchiveSource(file, false, sources, entryNames);
+    }
+
+    private void AddArchiveSource(string absolutePath, bool isDirectory, List<ArchiveSource> sources, HashSet<string> entryNames)
+    {
+        var entryName = Path.GetRelativePath(_rootPath, absolutePath).Replace(Path.DirectorySeparatorChar, '/');
+        if (isDirectory) entryName += "/";
+        if (entryNames.Add(entryName)) sources.Add(new ArchiveSource(absolutePath, entryName, isDirectory));
     }
 
     private string? ResolvePath(string relativePath)

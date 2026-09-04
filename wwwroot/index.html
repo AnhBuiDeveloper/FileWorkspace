@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>File Workspace</title>
   <link rel="stylesheet" href="/site.css">
-<style>@media (max-width:900px){.workspace-main{grid-column:1!important}}.entry-name-wrap{align-items:center;display:flex;gap:8px;min-width:0}.new-badge{background:#e9f2ff;border:1px solid #bed7ff;border-radius:999px;color:#165dcc;font-size:.72rem;font-weight:800;letter-spacing:.02em;line-height:1;padding:4px 7px;white-space:nowrap}.file-table-header,.file-entry{grid-template-columns:minmax(280px,1fr) 190px 120px 205px}.entry-actions{gap:8px}.entry-actions .button{white-space:nowrap}@media(max-width:680px){.file-table-header,.file-entry{min-width:700px}}</style>
+<style>@media (max-width:900px){.workspace-main{grid-column:1!important}}.entry-name-wrap{align-items:center;display:flex;gap:8px;min-width:0}.new-badge{background:#e9f2ff;border:1px solid #bed7ff;border-radius:999px;color:#165dcc;font-size:.72rem;font-weight:800;letter-spacing:.02em;line-height:1;padding:4px 7px;white-space:nowrap}.file-table-header,.file-entry{grid-template-columns:36px minmax(240px,1fr) 190px 120px 205px}.entry-select,.select-all-control{display:grid;place-items:center;width:36px;min-height:40px}.entry-select input,.select-all-control input{width:18px;height:18px;accent-color:#2564cf}.entry-actions{gap:8px}.entry-actions .button{white-space:nowrap}@media(max-width:680px){.file-table-header,.file-entry{min-width:780px}}</style>
 </head>
 <body>
   <div class="workspace-shell">
@@ -37,13 +37,13 @@
       <section id="files-panel" class="file-manager" hidden aria-live="polite" aria-label="Files">
         <div class="content-heading">
           <div><p class="section-kicker">FILE WORKSPACE</p><h1 data-i18n="filesTitle">File của bạn</h1></div>
-          <div class="manager-actions"><button id="upload-folder" class="action-button secondary" type="button" data-i18n="uploadFolder">Upload folder</button><button class="action-button primary desktop-upload" type="button" data-upload-trigger data-i18n="uploadFiles">Upload file</button></div>
+          <div class="manager-actions"><button id="download-selection" class="action-button secondary" type="button" disabled></button><button id="upload-folder" class="action-button secondary" type="button" data-i18n="uploadFolder">Upload folder</button><button class="action-button primary desktop-upload" type="button" data-upload-trigger data-i18n="uploadFiles">Upload file</button></div>
         </div>
         <nav id="breadcrumbs" class="breadcrumbs" aria-label="Current folder"></nav>
         <div id="drop-zone" class="drop-zone" tabindex="0" role="button" data-i18n-aria-label="dropZoneLabel"><span class="drop-zone-icon" aria-hidden="true">⇧</span><span data-i18n="dropZoneText">Kéo thả file vào đây để upload vào folder hiện tại</span></div>
         <p id="files-status" class="files-status"></p>
         <div class="file-table" role="region" data-i18n-aria-label="filesTitle" aria-label="Files">
-          <div class="file-table-header" aria-hidden="true"><span data-i18n="nameColumn">Tên</span><span data-i18n="modifiedColumn">Chỉnh sửa</span><span data-i18n="sizeColumn">Dung lượng</span><span></span></div>
+          <div class="file-table-header"><label class="select-all-control"><input id="select-all" type="checkbox"><span class="sr-only" data-i18n="selectAll">Chọn tất cả</span></label><span data-i18n="nameColumn">Tên</span><span data-i18n="modifiedColumn">Chỉnh sửa</span><span data-i18n="sizeColumn">Dung lượng</span><span></span></div>
           <div id="files-list" class="files-list" role="list"></div>
         </div>
       </section>
