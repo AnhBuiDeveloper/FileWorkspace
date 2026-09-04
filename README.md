@@ -13,6 +13,7 @@ It is deliberately small and self-contained. Today it is not a multi-tenant clou
 ### Highlights
 
 - Browse the file workspace, navigate folders, create folders, download individual or selected files/folders as a ZIP archive, and permanently delete selected files or folders after confirmation.
+- Collapse or reopen the Explorer-style sidebar on desktop; use the same menu to open or close the mobile navigation overlay.
 - Upload multiple files through selection or drag and drop, including an entire local folder.
 - Upload to the currently open folder, with independent per-file progress, smoothed speed, pause, resume, and stop controls. Stop immediately removes its activity card and requests cleanup for its incomplete upload session.
 - Stream large files directly to disk with resumable chunk uploads.
@@ -127,6 +128,7 @@ Project được chủ đích giữ gọn và độc lập. Hiện tại đây c
 ### Điểm nổi bật
 
 - Duyệt không gian file, đi vào folder, tạo folder, tải file riêng lẻ hoặc nhiều file/folder đã chọn dưới dạng ZIP, xóa vĩnh viễn file/folder đã chọn sau khi xác nhận.
+- Thu gọn hoặc mở lại sidebar kiểu Explorer trên desktop; dùng cùng menu để mở hoặc đóng navigation overlay trên mobile.
 - Upload nhiều file bằng chọn file hoặc kéo-thả, gồm cả một local folder.
 - Upload vào folder đang mở; mỗi file có tiến độ, tốc độ đã làm mượt, pause, resume và stop độc lập. Stop xóa activity card ngay và yêu cầu dọn phiên upload chưa hoàn tất.
 - Stream file lớn trực tiếp xuống ổ đĩa bằng upload theo chunk có thể resume.

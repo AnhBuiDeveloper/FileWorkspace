@@ -148,4 +148,10 @@ test('keeps the file workspace in the main grid column on desktop', async ({ pag
     const sidebar = document.querySelector('#sidebar').getBoundingClientRect();
     return main.left >= sidebar.right && main.width > 900;
   })).toBeTruthy();
+
+  await page.getByRole('button', { name: 'Close navigation' }).click();
+  await expect(page.locator('.workspace-shell')).toHaveClass(/sidebar-collapsed/);
+  expect(await page.locator('#sidebar').evaluate(element => element.getBoundingClientRect().width === 0)).toBeTruthy();
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  await expect(page.locator('.workspace-shell')).not.toHaveClass(/sidebar-collapsed/);
 });
