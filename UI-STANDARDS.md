@@ -29,6 +29,7 @@ Check both portrait and landscape when the change affects mobile layout.
 - Layout must work with browser zoom at 200% and with increased text size where supported.
 - The interface must respect `prefers-reduced-motion`; animation must not be required to understand state.
 - Do not rely on hover as the only way to reveal a required action or status.
+- Do not use browser-provided `alert()`, `confirm()`, or `prompt()` dialogs. Use an accessible, localized, application-owned modal for confirmations and decisions; native HTML `<dialog>` is acceptable.
 - Use fluid sizes (`min()`, `max()`, `clamp()`, flex/grid) before adding device-specific breakpoints.
 - Add or update localized text for both English and Vietnamese when user-visible wording changes.
 
@@ -73,6 +74,7 @@ Kiểm tra cả dọc và ngang nếu thay đổi tác động đến layout mob
 - Layout hoạt động ở browser zoom 200% và khi tăng cỡ chữ nếu nền tảng hỗ trợ.
 - Tôn trọng `prefers-reduced-motion`; không được phụ thuộc animation để hiểu trạng thái.
 - Không dùng hover là cách duy nhất để thấy action hoặc trạng thái cần thiết.
+- Không dùng browser-provided `alert()`, `confirm()` hoặc `prompt()`. Với xác nhận và quyết định, dùng modal do ứng dụng sở hữu, có accessibility và bản địa hóa; có thể dùng HTML `<dialog>` native.
 - Ưu tiên kích thước linh hoạt (`min()`, `max()`, `clamp()`, flex/grid) trước khi thêm breakpoint theo thiết bị.
 - Cập nhật văn bản hiển thị cho cả English và Tiếng Việt khi thay đổi wording.
 

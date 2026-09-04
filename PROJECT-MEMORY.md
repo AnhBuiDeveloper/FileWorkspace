@@ -37,7 +37,7 @@ This document is the durable engineering context for File Workspace, a self-host
 
 - The file-manager service, not endpoints or browser code, owns safe path resolution and all disk operations.
 - ZIP downloads must be generated as streamed responses; never persist temporary archives in `Upload/`. Archive sources must be existing validated paths, preserve the selected folder structure (including empty folders), omit incomplete `.uploading` files, and avoid duplicate entries when selections overlap.
-- File deletion is permanent and file-only in the current product. Keep an explicit client confirmation before the protected delete request; do not imply a recycle bin, restore, or audit capability.
+- File deletion is permanent and file-only in the current product. Keep an explicit client confirmation in an accessible, localized application modal before the protected delete request; never use browser-native `alert()`, `confirm()`, or `prompt()` dialogs. Do not imply a recycle bin, restore, or audit capability.
 
 ### Automated quality guardrails
 
@@ -80,7 +80,7 @@ This document is the durable engineering context for File Workspace, a self-host
 
 - File-manager service, không phải endpoint hoặc browser code, sở hữu việc resolve path an toàn và mọi thao tác ổ đĩa.
 - Tải ZIP phải tạo bằng response stream; không lưu archive tạm trong `Upload/`. Nguồn archive phải là path tồn tại đã validate, giữ cấu trúc folder được chọn (kể cả folder rỗng), bỏ file `.uploading` chưa hoàn tất và tránh entry trùng khi các mục chọn chồng lấn.
-- Xóa file hiện là vĩnh viễn và chỉ áp dụng cho file. Giữ xác nhận rõ ràng ở client trước protected delete request; không ngụ ý có thùng rác, khôi phục hoặc audit.
+- Xóa file hiện là vĩnh viễn và chỉ áp dụng cho file. Giữ xác nhận rõ ràng trong modal do ứng dụng sở hữu, có accessibility và bản địa hóa trước protected delete request; không dùng browser-native `alert()`, `confirm()` hoặc `prompt()`. Không ngụ ý có thùng rác, khôi phục hoặc audit.
 
 ### Guardrail chất lượng tự động
 

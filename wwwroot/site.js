@@ -7,7 +7,7 @@ const copy = {
     tokenLabel: 'Upload token', tokenPlaceholder: 'Nhập upload token', logout: 'Đăng xuất', loggedOut: 'Đã đăng xuất và dừng các upload đang hoạt động.', tokenRequired: 'Nhập upload token trước.',
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'File của bạn', newFolder: 'Tạo folder', uploadFiles: 'Upload file', uploadFolder: 'Upload folder', refreshFiles: 'Làm mới',
     dropZoneText: 'Kéo thả file vào đây để upload vào folder hiện tại', dropZoneLabel: 'Chọn file để upload vào folder hiện tại', home: 'Upload', filesLoading: 'Đang tải nội dung…', filesEmpty: 'Folder này đang trống.', refreshFilesHint: 'Nhấn Làm mới để xem file với token hiện tại.',
-    folder: 'Folder', download: 'Tải xuống', downloadSelected: 'Tải ZIP ({count})', selectAll: 'Chọn tất cả mục đang hiển thị', selectItem: 'Chọn {name}', downloadStarted: 'Đã bắt đầu tải file.', archiveStarted: 'Đã bắt đầu tạo ZIP.', delete: 'Xóa', deleteFile: 'Xóa file', deleteConfirmation: 'Xóa vĩnh viễn “{name}”? Thao tác này không thể hoàn tác.', fileDeleted: 'Đã xóa file.', uploadListTitle: 'Tiến trình upload',
+    folder: 'Folder', download: 'Tải xuống', downloadSelected: 'Tải ZIP ({count})', selectAll: 'Chọn tất cả mục đang hiển thị', selectItem: 'Chọn {name}', downloadStarted: 'Đã bắt đầu tải file.', archiveStarted: 'Đã bắt đầu tạo ZIP.', delete: 'Xóa', deleteFile: 'Xóa file', deletePermanently: 'Xóa vĩnh viễn', deleteConfirmation: 'Xóa vĩnh viễn “{name}”? Thao tác này không thể hoàn tác.', fileDeleted: 'Đã xóa file.', close: 'Đóng', uploadListTitle: 'Tiến trình upload',
     folderName: 'Tên folder', cancel: 'Hủy', createFolder: 'Tạo folder', creatingFolder: 'Đang tạo…', folderCreated: 'Đã tạo folder.',
     states: { preparing: 'Đang chuẩn bị…', queued: 'Đang chờ…', uploading: 'Đang upload…', paused: 'Đã tạm dừng', stopped: 'Đã dừng', completed: 'Hoàn tất', error: 'Có lỗi' },
     buttons: { pause: 'Pause', resume: 'Resume', stop: 'Stop' },
@@ -18,7 +18,7 @@ const copy = {
     tokenLabel: 'Upload token', tokenPlaceholder: 'Enter upload token', logout: 'Log out', loggedOut: 'You have been logged out and active uploads have been stopped.', tokenRequired: 'Enter the upload token first.',
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'Your files', newFolder: 'New folder', uploadFiles: 'Upload files', uploadFolder: 'Upload folder', refreshFiles: 'Refresh',
     dropZoneText: 'Drop files here to upload them to the current folder', dropZoneLabel: 'Choose files to upload to the current folder', home: 'Upload', filesLoading: 'Loading contents…', filesEmpty: 'This folder is empty.', refreshFilesHint: 'Select Refresh to view files with the current token.',
-    folder: 'Folder', download: 'Download', downloadSelected: 'Download ZIP ({count})', selectAll: 'Select all visible items', selectItem: 'Select {name}', downloadStarted: 'The download has started.', archiveStarted: 'ZIP download has started.', delete: 'Delete', deleteFile: 'Delete file', deleteConfirmation: 'Permanently delete “{name}”? This cannot be undone.', fileDeleted: 'File deleted.', uploadListTitle: 'Upload activity',
+    folder: 'Folder', download: 'Download', downloadSelected: 'Download ZIP ({count})', selectAll: 'Select all visible items', selectItem: 'Select {name}', downloadStarted: 'The download has started.', archiveStarted: 'ZIP download has started.', delete: 'Delete', deleteFile: 'Delete file', deletePermanently: 'Delete permanently', deleteConfirmation: 'Permanently delete “{name}”? This cannot be undone.', fileDeleted: 'File deleted.', close: 'Close', uploadListTitle: 'Upload activity',
     folderName: 'Folder name', cancel: 'Cancel', createFolder: 'Create folder', creatingFolder: 'Creating…', folderCreated: 'Folder created.',
     states: { preparing: 'Preparing…', queued: 'Queued', uploading: 'Uploading…', paused: 'Paused', stopped: 'Stopped', completed: 'Completed', error: 'Error' },
     buttons: { pause: 'Pause', resume: 'Resume', stop: 'Stop' },
@@ -50,6 +50,12 @@ const folderNameInput = document.querySelector('#folder-name');
 const folderDialogStatus = document.querySelector('#folder-dialog-status');
 const closeFolderDialogButton = document.querySelector('#close-folder-dialog');
 const cancelFolderDialogButton = document.querySelector('#cancel-folder-dialog');
+const deleteFileDialog = document.querySelector('#delete-file-dialog');
+const deleteFileForm = document.querySelector('#delete-file-form');
+const deleteFileDialogMessage = document.querySelector('#delete-file-dialog-message');
+const closeDeleteFileDialogButton = document.querySelector('#close-delete-file-dialog');
+const cancelDeleteFileButton = document.querySelector('#cancel-delete-file');
+const confirmDeleteFileButton = document.querySelector('#confirm-delete-file');
 const authPanel = document.querySelector('#auth-panel');
 const folderTree = document.querySelector('#folder-tree');
 const myFilesButton = document.querySelector('#my-files');
@@ -70,6 +76,7 @@ const treeCache = new Map();
 const expandedTreePaths = new Set(['']);
 const newFilePaths = new Set();
 const selectedPaths = new Set();
+let pendingDeleteEntry;
 const storedLanguage = localStorage.getItem('file-workspace-language') ?? localStorage.getItem('file-upload-language');
 if (storedLanguage) {
   localStorage.setItem('file-workspace-language', storedLanguage);
@@ -115,6 +122,10 @@ sidebarBackdrop.addEventListener('click', () => setSidebarOpen(false));
 closeFolderDialogButton.addEventListener('click', () => folderDialog.close());
 cancelFolderDialogButton.addEventListener('click', () => folderDialog.close());
 folderForm.addEventListener('submit', createFolder);
+closeDeleteFileDialogButton.addEventListener('click', () => deleteFileDialog.close());
+cancelDeleteFileButton.addEventListener('click', () => deleteFileDialog.close());
+deleteFileDialog.addEventListener('close', () => { pendingDeleteEntry = undefined; confirmDeleteFileButton.disabled = false; });
+deleteFileForm.addEventListener('submit', confirmDeleteFile);
 fileInput.addEventListener('change', () => { addFiles(fileInput.files, false); fileInput.value = ''; });
 folderInput.addEventListener('change', () => { addFiles(folderInput.files, true); folderInput.value = ''; });
 
@@ -321,7 +332,7 @@ function renderFileManager() {
     const size = document.createElement('span'); size.className = 'entry-meta'; size.textContent = entry.type === 'folder' ? t('folder') : formatBytes(entry.bytes);
     const actions = document.createElement('div'); actions.className = 'entry-actions';
     if (entry.type === 'folder') actions.append(button('›', 'open-folder', () => loadFiles(joinPath(currentPath, entry.name)), entry.name));
-    else actions.append(button(t('download'), 'download', () => downloadFile(entry)), button(t('delete'), 'danger', () => deleteFile(entry), t('deleteFile')));
+    else actions.append(button(t('download'), 'download', () => downloadFile(entry)), button(t('delete'), 'danger', () => openDeleteFileDialog(entry), t('deleteFile')));
     row.append(selection, info, modified, size, actions); filesList.append(row);
   });
   updateSelectionControls(displayedEntries);
@@ -442,15 +453,26 @@ function downloadSelection() {
   document.body.append(form); form.submit(); form.remove(); setStatus(t('archiveStarted'), 'success');
 }
 
-async function deleteFile(entry) {
-  const token = tokenInput.value.trim(); const path = joinPath(currentPath, entry.name);
-  if (!token || !window.confirm(t('deleteConfirmation').replace('{name}', entry.name))) return;
+function openDeleteFileDialog(entry) {
+  if (!tokenInput.value.trim()) { setStatus(t('tokenRequired'), 'error'); tokenInput.focus(); return; }
+  pendingDeleteEntry = { ...entry, path: joinPath(currentPath, entry.name) };
+  deleteFileDialogMessage.textContent = t('deleteConfirmation').replace('{name}', entry.name);
+  deleteFileDialog.showModal();
+  cancelDeleteFileButton.focus();
+}
+
+async function confirmDeleteFile(event) {
+  event.preventDefault();
+  const entry = pendingDeleteEntry; const token = tokenInput.value.trim();
+  if (!entry || !token) return;
+  confirmDeleteFileButton.disabled = true;
   try {
-    const response = await fetch(`/api/files?path=${encodeURIComponent(path)}`, { method: 'DELETE', headers: { 'X-Upload-Token': token } });
+    const response = await fetch(`/api/files?path=${encodeURIComponent(entry.path)}`, { method: 'DELETE', headers: { 'X-Upload-Token': token } });
     const data = await readResponse(response);
     if (!response.ok) throw new Error(response.status === 401 ? t('errors.unauthorized') : data.error || t('errors.fileNotFound'));
-    newFilePaths.delete(path); selectedPaths.delete(path); setStatus(t('fileDeleted'), 'success'); await loadFiles();
+    newFilePaths.delete(entry.path); selectedPaths.delete(entry.path); deleteFileDialog.close(); setStatus(t('fileDeleted'), 'success'); await loadFiles();
   } catch (error) { setStatus(localizeError(error.message || t('errors.fileNotFound')), 'error'); }
+  finally { if (deleteFileDialog.open) confirmDeleteFileButton.disabled = false; }
 }
 
 function logout() {
@@ -476,6 +498,7 @@ function applyLanguage() {
   document.querySelectorAll('[data-i18n-placeholder]').forEach(element => { element.placeholder = t(element.dataset.i18nPlaceholder); });
   document.querySelectorAll('[data-i18n-title]').forEach(element => { element.title = t(element.dataset.i18nTitle); });
   document.querySelectorAll('[data-i18n-aria-label]').forEach(element => { element.setAttribute('aria-label', t(element.dataset.i18nAriaLabel)); });
+  if (pendingDeleteEntry) deleteFileDialogMessage.textContent = t('deleteConfirmation').replace('{name}', pendingDeleteEntry.name);
   languageSelect.setAttribute('aria-label', t('languageLabel')); filesPanel.setAttribute('aria-label', t('filesTitle')); uploadPanel.setAttribute('aria-label', t('uploadListTitle'));
   uploads.forEach(upload => upload.render()); renderFileManager(); renderFolderTree(); updateUploadCount(); updateSelectionControls();
 }

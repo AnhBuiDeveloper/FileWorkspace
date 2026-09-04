@@ -91,6 +91,8 @@ Test-Matches 'AGENTS.md' 'UI-STANDARDS\.md' 'AGENTS.md must require UI-STANDARDS
 Test-Matches 'AGENTS.md' 'SOLID.{0,8}KISS.{0,8}DRY.{0,8}YAGNI' 'AGENTS.md must require engineering principles.'
 Test-Matches 'AGENTS.md' 'dotnet test' 'AGENTS.md must require .NET tests.'
 Test-Matches 'AGENTS.md' 'npm run test:ui' 'AGENTS.md must require Playwright tests.'
+Test-Matches 'AGENTS.md' 'alert\(\).*confirm\(\).*prompt\(' 'AGENTS.md must prohibit browser-native dialogs.'
+Test-DoesNotMatch 'wwwroot\site.js' '\b(?:window\.)?(alert|confirm|prompt)\s*\(' 'Browser-native dialogs are prohibited; use an accessible application modal.'
 
 foreach ($principle in @('SOLID', 'KISS', 'DRY', 'YAGNI')) {
     Test-Matches 'PROJECT-MEMORY.md' $principle "PROJECT-MEMORY.md must document $principle."
@@ -98,6 +100,7 @@ foreach ($principle in @('SOLID', 'KISS', 'DRY', 'YAGNI')) {
 foreach ($width in @('320 px', '375 px', '430 px', '768 px', '1024 px', '1440 px')) {
     Test-Matches 'UI-STANDARDS.md' $width "UI-STANDARDS.md must include the $width viewport check."
 }
+Test-Matches 'UI-STANDARDS.md' 'Browser-provided.*alert.*confirm.*prompt' 'UI-STANDARDS.md must prohibit browser-provided dialogs.'
 
 if ($failures.Count -gt 0) {
     Write-Error ('Architecture quality check failed:' + [Environment]::NewLine + ($failures | ForEach-Object { "- $_" } | Out-String))

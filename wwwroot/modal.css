@@ -1,0 +1,24 @@
+.action-button.danger {
+  color: #b42318;
+  background: #fff1f0;
+  border-color: #f3b9b4;
+}
+
+.action-button.danger:hover {
+  background: #ffe4e2;
+  border-color: #e88c85;
+}
+
+.confirmation-dialog .dialog-message {
+  margin: 0;
+  color: #536171;
+  line-height: 1.55;
+}
+
+.confirmation-dialog .dialog-actions {
+  margin-top: 24px;
+}
+
+.confirmation-dialog::backdrop {
+  background: #17233b73;
+}
