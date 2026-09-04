@@ -67,7 +67,7 @@ test('creates a folder and uploads a file into it', async ({ page }) => {
   await expect(page.getByRole('button', { name: fileName, exact: true })).toBeHidden();
 });
 
-test('stops an active upload on first click', async ({ page }) => {
+test('removes a stopped upload before a new upload starts', async ({ page }) => {
   await signIn(page);
   await page.route(/\/api\/uploads\/[^/]+\/chunks\/\d+$/, async route => {
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -83,7 +83,15 @@ test('stops an active upload on first click', async ({ page }) => {
   const upload = page.locator('.upload-item').filter({ hasText: 'stop-proof.txt' });
   await expect(upload.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
   await upload.getByRole('button', { name: 'Stop', exact: true }).click();
-  await expect(upload.locator('.upload-state')).toHaveText('Stopped');
+  await expect(upload).toHaveCount(0);
+
+  await page.locator('#file-input').setInputFiles({
+    name: 'next-upload.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.alloc(128 * 1024, 'y')
+  });
+  await expect(page.locator('.upload-item').filter({ hasText: 'next-upload.txt' })).toBeVisible();
+  await expect(upload).toHaveCount(0);
 });
 
 test('selects multiple files and folders for a ZIP download', async ({ page }) => {
