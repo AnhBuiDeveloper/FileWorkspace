@@ -67,6 +67,25 @@ test('creates a folder and uploads a file into it', async ({ page }) => {
   await expect(page.getByRole('button', { name: fileName, exact: true })).toBeHidden();
 });
 
+test('stops an active upload on first click', async ({ page }) => {
+  await signIn(page);
+  await page.route(/\/api\/uploads\/[^/]+\/chunks\/\d+$/, async route => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await route.continue();
+  });
+
+  await page.locator('#file-input').setInputFiles({
+    name: 'stop-proof.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.alloc(128 * 1024, 'x')
+  });
+
+  const upload = page.locator('.upload-item').filter({ hasText: 'stop-proof.txt' });
+  await expect(upload.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
+  await upload.getByRole('button', { name: 'Stop', exact: true }).click();
+  await expect(upload.locator('.upload-state')).toHaveText('Stopped');
+});
+
 test('selects multiple files and folders for a ZIP download', async ({ page }) => {
   await signIn(page);
   const folderName = 'zip-' + Date.now();
