@@ -44,16 +44,26 @@ test('creates a folder and uploads a file into it', async ({ page }) => {
   await expect(page.locator('.new-badge')).toHaveText('New');
   await expect(page.locator('#upload-panel')).toBeHidden();
 
-  page.once('dialog', dialog => dialog.dismiss());
+  for (const width of [320, 375, 430, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.getByRole('button', { name: 'Delete', exact: true }).click();
+    await expect(page.locator('#delete-file-dialog')).toBeVisible();
+    expect(await page.locator('body').evaluate(body => body.scrollWidth <= window.innerWidth)).toBeTruthy();
+    expect(await page.locator('#delete-file-dialog').evaluate(dialog => {
+      const bounds = dialog.getBoundingClientRect();
+      return bounds.left >= 0 && bounds.right <= window.innerWidth && bounds.top >= 0 && bounds.bottom <= window.innerHeight;
+    })).toBeTruthy();
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  }
+
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect(page.locator('#delete-file-dialog')).toBeVisible();
+  await expect(page.locator('#delete-file-dialog-message')).toContainText(fileName);
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(page.getByRole('button', { name: fileName, exact: true })).toBeVisible();
 
-  page.once('dialog', async dialog => {
-    expect(dialog.type()).toBe('confirm');
-    expect(dialog.message()).toContain(fileName);
-    await dialog.accept();
-  });
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  await page.getByRole('button', { name: 'Delete permanently', exact: true }).click();
   await expect(page.getByRole('button', { name: fileName, exact: true })).toBeHidden();
 });
 
