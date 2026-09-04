@@ -38,6 +38,7 @@ This document is the durable engineering context for File Workspace, a self-host
 - The file-manager service, not endpoints or browser code, owns safe path resolution and all disk operations.
 - ZIP downloads must be generated as streamed responses; never persist temporary archives in `Upload/`. Archive sources must be existing validated paths, preserve the selected folder structure (including empty folders), omit incomplete `.uploading` files, and avoid duplicate entries when selections overlap.
 - Selected-file/folder deletion is permanent in the current product. Keep an explicit client confirmation in an accessible, localized application modal before the protected delete request; selected folders delete recursively. Validate every selection before mutation, deduplicate overlapping parent/child selections, and reject a folder containing an incomplete upload. Never use browser-native `alert()`, `confirm()`, or `prompt()` dialogs. Do not imply a recycle bin, restore, or audit capability.
+- Upload activity is browser-local. Stop must synchronously cancel the active client transfer, remove its task/card from browser state, and request server-side session cleanup. A stopped task must never reappear because a later upload starts. During progress rendering, preserve interactive controls instead of recreating them, so pointer and keyboard actions are reliable.
 
 ### Automated quality guardrails
 
@@ -81,6 +82,7 @@ This document is the durable engineering context for File Workspace, a self-host
 - File-manager service, không phải endpoint hoặc browser code, sở hữu việc resolve path an toàn và mọi thao tác ổ đĩa.
 - Tải ZIP phải tạo bằng response stream; không lưu archive tạm trong `Upload/`. Nguồn archive phải là path tồn tại đã validate, giữ cấu trúc folder được chọn (kể cả folder rỗng), bỏ file `.uploading` chưa hoàn tất và tránh entry trùng khi các mục chọn chồng lấn.
 - Xóa file/folder đã chọn hiện là vĩnh viễn. Giữ xác nhận rõ ràng trong modal do ứng dụng sở hữu, có accessibility và bản địa hóa trước protected delete request; folder được chọn bị xóa đệ quy. Validate toàn bộ selection trước khi mutate, loại selection cha/con chồng lấn và từ chối folder có upload chưa hoàn tất. Không dùng browser-native `alert()`, `confirm()` hoặc `prompt()`. Không ngụ ý có thùng rác, khôi phục hoặc audit.
+- Upload activity chỉ tồn tại ở browser. Stop phải hủy client transfer đang chạy, xóa task/card khỏi browser state ngay và yêu cầu server dọn session. Task đã dừng không được xuất hiện lại vì upload mới bắt đầu. Khi render progress, phải giữ interactive control thay vì tạo lại để thao tác chuột và bàn phím ổn định.
 
 ### Guardrail chất lượng tự động
 

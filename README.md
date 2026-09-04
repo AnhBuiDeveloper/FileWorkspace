@@ -14,7 +14,7 @@ It is deliberately small and self-contained. Today it is not a multi-tenant clou
 
 - Browse the file workspace, navigate folders, create folders, download individual or selected files/folders as a ZIP archive, and permanently delete selected files or folders after confirmation.
 - Upload multiple files through selection or drag and drop, including an entire local folder.
-- Upload to the currently open folder, with independent per-file progress, speed, pause, resume, and stop controls.
+- Upload to the currently open folder, with independent per-file progress, smoothed speed, pause, resume, and stop controls. Stop immediately removes its activity card and requests cleanup for its incomplete upload session.
 - Stream large files directly to disk with resumable chunk uploads.
 - Keep incomplete uploads as hidden .uploading files, then atomically rename them only after a successful upload.
 - Protect all file-manager actions with one access token supplied through UPLOAD_ACCESS_TOKEN.
@@ -77,6 +77,7 @@ The [`deploy/`](deploy/README.md) directory contains an optional Linux systemd +
 
 - A visible `.uploading` file means that an upload is still being written. It is removed or renamed only when the request completes.
 - Pause/Resume retains progress while the browser page and server process remain available. Reloading the page or restarting the server starts a new upload session.
+- Stop immediately cancels an upload and removes its activity card. A stopped task never returns when a later upload begins; the browser requests cleanup for its incomplete hidden upload session.
 - ZIP archives are generated as a streamed response and are not retained in `Upload/`. Keep sufficient storage for the source files and ensure the proxy does not buffer the archive response.
 - Deletion is irreversible. Back up data you need to retain; the application has no recycle bin or restore operation.
 - The browser remembers the upload token on the current device until **Log out**. Do not use this option on a shared browser profile; log out when finished.
@@ -90,7 +91,7 @@ The repository maintains three automated test layers:
 
 - Unit tests for token validation and file-manager storage behavior.
 - API integration tests that exercise the real ASP.NET Core routes in an isolated workspace.
-- Playwright UI tests in Chromium for token persistence, localization, folder creation, upload flow, selected ZIP downloads, and confirmed file deletion.
+- Playwright UI tests in Chromium for token persistence, localization, folder creation, upload flow, one-click Stop cleanup, selected ZIP downloads, and confirmed file deletion.
 
 Run all checks locally:
 
@@ -123,7 +124,7 @@ Project được chủ đích giữ gọn và độc lập. Hiện tại đây c
 
 - Duyệt không gian file, đi vào folder, tạo folder, tải file riêng lẻ hoặc nhiều file/folder đã chọn dưới dạng ZIP, xóa vĩnh viễn file/folder đã chọn sau khi xác nhận.
 - Upload nhiều file bằng chọn file hoặc kéo-thả, gồm cả một local folder.
-- Upload vào folder đang mở; mỗi file có tiến độ, tốc độ, pause, resume và stop độc lập.
+- Upload vào folder đang mở; mỗi file có tiến độ, tốc độ đã làm mượt, pause, resume và stop độc lập. Stop xóa activity card ngay và yêu cầu dọn phiên upload chưa hoàn tất.
 - Stream file lớn trực tiếp xuống ổ đĩa bằng upload theo chunk có thể resume.
 - Giữ upload chưa hoàn tất ở dạng file .uploading ẩn; chỉ đổi tên nguyên tử khi upload thành công.
 - Bảo vệ mọi thao tác file manager bằng một access token từ UPLOAD_ACCESS_TOKEN.
@@ -186,6 +187,7 @@ Thư mục [`deploy/`](deploy/README.md) có cấu hình tham khảo Linux syste
 
 - File `.uploading` đang hiển thị nghĩa là upload vẫn được ghi. Nó chỉ được xóa hoặc đổi tên khi request hoàn tất.
 - Pause/Resume giữ tiến độ khi trang trình duyệt và process server vẫn đang hoạt động. Reload trang hoặc restart server sẽ tạo một phiên upload mới.
+- Stop hủy upload và xóa activity card ngay. Task đã dừng không được xuất hiện lại khi bắt đầu upload khác; browser yêu cầu server dọn phiên upload ẩn chưa hoàn tất.
 - ZIP được tạo dưới dạng response stream và không được lưu lại trong `Upload/`. Cần giữ đủ dung lượng cho các file nguồn và bảo đảm proxy không buffer response archive.
 - Xóa file/folder là không thể hoàn tác. Hãy backup dữ liệu cần giữ; ứng dụng chưa có thùng rác hoặc khôi phục.
 - Trình duyệt ghi nhớ upload token trên thiết bị hiện tại đến khi **Đăng xuất**. Không dùng trên browser profile dùng chung; hãy đăng xuất khi hoàn tất.
@@ -199,7 +201,7 @@ Repository duy trì ba tầng automated test:
 
 - Unit test cho token validation và hành vi lưu trữ của file manager.
 - API integration test chạy route ASP.NET Core thật trong workspace cô lập.
-- Playwright UI test trên Chromium cho lưu token, đổi ngôn ngữ, tạo folder, upload, tải ZIP các mục đã chọn và xóa file có xác nhận.
+- Playwright UI test trên Chromium cho lưu token, đổi ngôn ngữ, tạo folder, upload, kiểm tra Stop một lần, tải ZIP các mục đã chọn và xóa file có xác nhận.
 
 Chạy toàn bộ kiểm tra tại local:
 

@@ -20,6 +20,7 @@ Do not modify a file until applicable documents have been read. If a request con
 - Prefer smallest standard-library/browser solution. Do not add dependencies, roles, databases, queues, cloud integrations, speculative abstractions, configuration without accepted requirement.
 - Keep validation, authorization, path handling, error mapping, localized strings centralized. Do not duplicate rules between layers.
 - Never use browser-native `alert()`, `confirm()`, or `prompt()` dialogs. Destructive or decision-required browser actions must use an accessible, localized, application-owned modal; the native HTML `<dialog>` element is allowed.
+- For progressive upload UI, preserve mounted interactive controls while progress changes. A Stop action must cancel client transfer and remove its browser task immediately; terminal tasks must not return on later uploads.
 - Preserve backward-compatible API behavior unless a versioned breaking change has explicit approval.
 - Never commit `.env`, credentials, tokens, real uploads, private data, generated test reports, build artifacts.
 
