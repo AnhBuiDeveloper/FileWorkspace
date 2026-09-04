@@ -3,7 +3,7 @@ const MAX_CONCURRENT_UPLOADS = 3;
 
 const copy = {
   vi: {
-    documentTitle: 'File Workspace', languageLabel: 'Ngôn ngữ', title: 'Không gian file riêng', hint: 'Nhập upload token trong thanh bên để truy cập file của bạn.', searchPlaceholder: 'Tìm trong folder hiện tại', myFiles: 'File của tôi', folders: 'Folders', privateWorkspace: 'Không gian file riêng tư', nameColumn: 'Tên', modifiedColumn: 'Chỉnh sửa', sizeColumn: 'Dung lượng', openNavigation: 'Mở điều hướng', toggleFolder: 'Mở hoặc đóng folder',
+    documentTitle: 'File Workspace', languageLabel: 'Ngôn ngữ', title: 'Không gian file riêng', hint: 'Nhập upload token trong thanh bên để truy cập file của bạn.', searchPlaceholder: 'Tìm trong folder hiện tại', myFiles: 'File của tôi', folders: 'Folders', privateWorkspace: 'Không gian file riêng tư', nameColumn: 'Tên', modifiedColumn: 'Chỉnh sửa', sizeColumn: 'Dung lượng', newLabel: 'Mới', openNavigation: 'Mở điều hướng', toggleFolder: 'Mở hoặc đóng folder',
     tokenLabel: 'Upload token', tokenPlaceholder: 'Nhập upload token', logout: 'Đăng xuất', loggedOut: 'Đã đăng xuất và dừng các upload đang hoạt động.', tokenRequired: 'Nhập upload token trước.',
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'File của bạn', newFolder: 'Tạo folder', uploadFiles: 'Upload file', uploadFolder: 'Upload folder', refreshFiles: 'Làm mới',
     dropZoneText: 'Kéo thả file vào đây để upload vào folder hiện tại', dropZoneLabel: 'Chọn file để upload vào folder hiện tại', home: 'Upload', filesLoading: 'Đang tải nội dung…', filesEmpty: 'Folder này đang trống.', refreshFilesHint: 'Nhấn Làm mới để xem file với token hiện tại.',
@@ -14,7 +14,7 @@ const copy = {
     errors: { createSession: 'Không thể tạo phiên upload.', invalidResponse: 'Phản hồi server không hợp lệ.', connection: 'Không kết nối được server.', uploadFailed: 'Upload thất bại.', unauthorized: 'Upload token không hợp lệ hoặc đã hết quyền truy cập.', invalidFileName: 'Tên file không hợp lệ.', invalidFileSize: 'Dung lượng file không hợp lệ.', invalidFolder: 'Tên hoặc đường dẫn thư mục không hợp lệ.', folderExists: 'Tên thư mục đã tồn tại.', folderNotFound: 'Thư mục không tồn tại.', sessionNotFound: 'Phiên upload không tồn tại hoặc đã kết thúc.', invalidChunk: 'Chunk không hợp lệ.', invalidChunkSize: 'Kích thước chunk không hợp lệ.', incompleteChunk: 'Dữ liệu chunk chưa hoàn chỉnh.', downloadFailed: 'Không thể tải file.' }
   },
   en: {
-    documentTitle: 'File Workspace', languageLabel: 'Language', title: 'Private file workspace', hint: 'Enter the upload token in the sidebar to access your files.', searchPlaceholder: 'Search current folder', myFiles: 'My files', folders: 'Folders', privateWorkspace: 'Private file workspace', nameColumn: 'Name', modifiedColumn: 'Modified', sizeColumn: 'Size', openNavigation: 'Open navigation', toggleFolder: 'Toggle folder',
+    documentTitle: 'File Workspace', languageLabel: 'Language', title: 'Private file workspace', hint: 'Enter the upload token in the sidebar to access your files.', searchPlaceholder: 'Search current folder', myFiles: 'My files', folders: 'Folders', privateWorkspace: 'Private file workspace', nameColumn: 'Name', modifiedColumn: 'Modified', sizeColumn: 'Size', newLabel: 'New', openNavigation: 'Open navigation', toggleFolder: 'Toggle folder',
     tokenLabel: 'Upload token', tokenPlaceholder: 'Enter upload token', logout: 'Log out', loggedOut: 'You have been logged out and active uploads have been stopped.', tokenRequired: 'Enter the upload token first.',
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'Your files', newFolder: 'New folder', uploadFiles: 'Upload files', uploadFolder: 'Upload folder', refreshFiles: 'Refresh',
     dropZoneText: 'Drop files here to upload them to the current folder', dropZoneLabel: 'Choose files to upload to the current folder', home: 'Upload', filesLoading: 'Loading contents…', filesEmpty: 'This folder is empty.', refreshFilesHint: 'Select Refresh to view files with the current token.',
@@ -66,6 +66,7 @@ let entries = [];
 let fileRequestVersion = 0;
 const treeCache = new Map();
 const expandedTreePaths = new Set(['']);
+const newFilePaths = new Set();
 const storedLanguage = localStorage.getItem('file-workspace-language') ?? localStorage.getItem('file-upload-language');
 if (storedLanguage) {
   localStorage.setItem('file-workspace-language', storedLanguage);
@@ -173,7 +174,7 @@ class UploadTask {
       this.uploadId = data.uploadId;
       this.uploadedBytes = data.uploadedBytes || 0;
       if (this.state === 'stopped') { await this.deleteSession(); return; }
-      if (data.completed) { this.state = 'completed'; this.uploadedBytes = this.file.size; loadFiles(); }
+      if (data.completed) this.complete();
       else { this.state = this.state === 'paused' ? 'paused' : 'queued'; scheduleUploads(); }
     } catch (error) {
       if (this.state !== 'stopped') { this.state = 'error'; this.error = localizeError(error.message || t('errors.createSession')); }
@@ -192,7 +193,7 @@ class UploadTask {
         this.uploadedBytes = result.uploadedBytes;
         this.nextChunk += 1;
         if (result.completed || this.nextChunk === this.totalChunks) {
-          this.state = 'completed'; this.uploadedBytes = this.file.size; this.speed = 0; loadFiles();
+          this.complete();
         }
         this.render();
       }
@@ -230,6 +231,19 @@ class UploadTask {
   resume() { if (this.state !== 'paused') return; this.state = this.uploadId ? 'queued' : 'preparing'; this.error = ''; this.render(); scheduleUploads(); }
   async stop() { if (['stopped', 'completed'].includes(this.state)) return; this.state = 'stopped'; this.speed = 0; this.xhr?.abort(); this.render(); updateUploadCount(); await this.deleteSession(); }
   async deleteSession() { if (!this.uploadId) return; try { await fetch(`/api/uploads/${this.uploadId}`, { method: 'DELETE', headers: { 'X-Upload-Token': this.token } }); } catch { /* local state is already stopped */ } }
+
+  complete() {
+    if (this.state === 'completed') return;
+    this.state = 'completed'; this.uploadedBytes = this.file.size; this.speed = 0;
+    newFilePaths.add(joinPath(this.targetPath, this.file.name));
+    if (currentPath === this.targetPath) loadFiles();
+    window.setTimeout(() => {
+      const index = uploads.indexOf(this);
+      if (index >= 0) uploads.splice(index, 1);
+      this.element?.remove();
+      updateUploadCount();
+    }, 0);
+  }
 
   render(displayedBytes = this.uploadedBytes) {
     if (!this.element) { this.element = document.createElement('article'); this.element.className = 'upload-item'; uploadList.append(this.element); }
@@ -282,7 +296,11 @@ function renderFileManager() {
     const name = document.createElement('button'); name.className = 'entry-name'; name.type = 'button'; name.textContent = entry.name; name.title = entry.name;
     if (entry.type === 'folder') name.addEventListener('click', () => loadFiles(joinPath(currentPath, entry.name)));
     else name.addEventListener('click', () => downloadFile(entry));
-    info.append(icon, name);
+    const nameWrap = document.createElement('div'); nameWrap.className = 'entry-name-wrap'; nameWrap.append(name);
+    if (newFilePaths.has(joinPath(currentPath, entry.name))) {
+      const badge = document.createElement('span'); badge.className = 'new-badge'; badge.textContent = t('newLabel'); nameWrap.append(badge);
+    }
+    info.append(icon, nameWrap);
     const modified = document.createElement('span'); modified.className = 'entry-meta'; modified.textContent = formatDate(entry.modifiedAtUtc);
     const size = document.createElement('span'); size.className = 'entry-meta'; size.textContent = entry.type === 'folder' ? t('folder') : formatBytes(entry.bytes);
     const action = entry.type === 'folder'
@@ -398,7 +416,8 @@ function updateAuthControls() {
 
 function updateUploadCount() {
   const active = uploads.filter(upload => ['preparing', 'queued', 'uploading', 'paused'].includes(upload.state)).length;
-  uploadPanel.hidden = uploads.length === 0; const count = active || uploads.length; uploadCount.textContent = currentLanguage === 'vi' ? `${count} file` : `${count} file${count === 1 ? '' : 's'}`;
+  uploadPanel.hidden = active === 0;
+  uploadCount.textContent = currentLanguage === 'vi' ? `${active} file` : `${active} file${active === 1 ? '' : 's'}`;
 }
 
 function applyLanguage() {

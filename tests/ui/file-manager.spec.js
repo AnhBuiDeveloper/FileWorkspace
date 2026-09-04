@@ -40,8 +40,9 @@ test('creates a folder and uploads a file into it', async ({ page }) => {
     buffer: Buffer.from('Playwright verifies the upload flow.')
   });
 
-  await expect(page.getByText('Completed', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: fileName, exact: true })).toBeVisible();
+  await expect(page.locator('.new-badge')).toHaveText('New');
+  await expect(page.locator('#upload-panel')).toBeHidden();
 });
 
 test('renders the Explorer tree and keeps the compact layout within the viewport', async ({ page }) => {
