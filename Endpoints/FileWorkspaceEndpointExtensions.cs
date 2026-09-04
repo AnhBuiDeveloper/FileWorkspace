@@ -72,6 +72,19 @@ public static class FileWorkspaceEndpointExtensions
             catch (FileManagerException exception) { return Error(exception); }
         });
 
+        endpoints.MapPost("/api/files/delete", async (HttpContext context, FileManagerService files, UploadTokenValidator token) =>
+        {
+            if (!IsAuthorized(context, token)) return Results.Unauthorized();
+            var request = await context.Request.ReadFromJsonAsync<DeleteEntriesRequest>(cancellationToken: context.RequestAborted);
+            if (request?.Paths is null) return Error("Cần chọn ít nhất một file hoặc folder.", StatusCodes.Status400BadRequest);
+            try
+            {
+                files.DeleteEntries(request.Paths);
+                return Results.NoContent();
+            }
+            catch (FileManagerException exception) { return Error(exception); }
+        });
+
         endpoints.MapDelete("/api/files", (HttpContext context, FileManagerService files, UploadTokenValidator token) =>
         {
             if (!IsAuthorized(context, token)) return Results.Unauthorized();

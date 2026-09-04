@@ -81,8 +81,20 @@ test('selects multiple files and folders for a ZIP download', async ({ page }) =
   await page.getByLabel(`Select ${folderName}`).check();
   await page.getByLabel(`Select ${fileName}`).check();
   await expect(page.getByRole('button', { name: `Download ZIP (2)`, exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Delete (2)', exact: true })).toBeEnabled();
+  for (const width of [320, 375, 430, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(page.getByRole('button', { name: `Download ZIP (2)`, exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Delete (2)', exact: true })).toBeVisible();
+    expect(await page.locator('body').evaluate(body => body.scrollWidth <= window.innerWidth)).toBeTruthy();
+  }
   await page.getByRole('button', { name: `Download ZIP (2)`, exact: true }).click();
   await expect(page.getByRole('status')).toHaveText('ZIP download has started.');
+  await page.getByRole('button', { name: 'Delete (2)', exact: true }).click();
+  await expect(page.locator('#delete-file-dialog-message')).toContainText('all their contents');
+  await page.getByRole('button', { name: 'Delete permanently', exact: true }).click();
+  await expect(page.getByRole('button', { name: folderName, exact: true })).toBeHidden();
+  await expect(page.getByRole('button', { name: fileName, exact: true })).toBeHidden();
 });
 
 test('renders the Explorer tree and keeps the compact layout within the viewport', async ({ page }) => {

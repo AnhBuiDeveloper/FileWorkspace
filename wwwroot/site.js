@@ -7,22 +7,22 @@ const copy = {
     tokenLabel: 'Upload token', tokenPlaceholder: 'Nhập upload token', logout: 'Đăng xuất', loggedOut: 'Đã đăng xuất và dừng các upload đang hoạt động.', tokenRequired: 'Nhập upload token trước.',
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'File của bạn', newFolder: 'Tạo folder', uploadFiles: 'Upload file', uploadFolder: 'Upload folder', refreshFiles: 'Làm mới',
     dropZoneText: 'Kéo thả file vào đây để upload vào folder hiện tại', dropZoneLabel: 'Chọn file để upload vào folder hiện tại', home: 'Upload', filesLoading: 'Đang tải nội dung…', filesEmpty: 'Folder này đang trống.', refreshFilesHint: 'Nhấn Làm mới để xem file với token hiện tại.',
-    folder: 'Folder', download: 'Tải xuống', downloadSelected: 'Tải ZIP ({count})', selectAll: 'Chọn tất cả mục đang hiển thị', selectItem: 'Chọn {name}', downloadStarted: 'Đã bắt đầu tải file.', archiveStarted: 'Đã bắt đầu tạo ZIP.', delete: 'Xóa', deleteFile: 'Xóa file', deletePermanently: 'Xóa vĩnh viễn', deleteConfirmation: 'Xóa vĩnh viễn “{name}”? Thao tác này không thể hoàn tác.', fileDeleted: 'Đã xóa file.', close: 'Đóng', uploadListTitle: 'Tiến trình upload',
+    folder: 'Folder', download: 'Tải xuống', downloadSelected: 'Tải ZIP ({count})', deleteSelected: 'Xóa ({count})', deleteSelectedTitle: 'Xóa {count} mục đã chọn', selectAll: 'Chọn tất cả mục đang hiển thị', selectItem: 'Chọn {name}', downloadStarted: 'Đã bắt đầu tải file.', archiveStarted: 'Đã bắt đầu tạo ZIP.', delete: 'Xóa', deleteFile: 'Xóa file', deletePermanently: 'Xóa vĩnh viễn', deleteConfirmation: 'Xóa vĩnh viễn “{name}”? Thao tác này không thể hoàn tác.', deleteSelectionConfirmation: 'Xóa vĩnh viễn {count} mục đã chọn? Folder được chọn và toàn bộ nội dung trong đó cũng sẽ bị xóa. Thao tác này không thể hoàn tác.', fileDeleted: 'Đã xóa file.', itemsDeleted: 'Đã xóa {count} mục.', close: 'Đóng', uploadListTitle: 'Tiến trình upload',
     folderName: 'Tên folder', cancel: 'Hủy', createFolder: 'Tạo folder', creatingFolder: 'Đang tạo…', folderCreated: 'Đã tạo folder.',
     states: { preparing: 'Đang chuẩn bị…', queued: 'Đang chờ…', uploading: 'Đang upload…', paused: 'Đã tạm dừng', stopped: 'Đã dừng', completed: 'Hoàn tất', error: 'Có lỗi' },
     buttons: { pause: 'Pause', resume: 'Resume', stop: 'Stop' },
-    errors: { createSession: 'Không thể tạo phiên upload.', invalidResponse: 'Phản hồi server không hợp lệ.', connection: 'Không kết nối được server.', uploadFailed: 'Upload thất bại.', unauthorized: 'Upload token không hợp lệ hoặc đã hết quyền truy cập.', invalidFileName: 'Tên file không hợp lệ.', invalidFileSize: 'Dung lượng file không hợp lệ.', invalidFolder: 'Tên hoặc đường dẫn thư mục không hợp lệ.', folderExists: 'Tên thư mục đã tồn tại.', folderNotFound: 'Thư mục không tồn tại.', fileNotFound: 'File không tồn tại.', archiveEmpty: 'Cần chọn ít nhất một file hoặc folder.', archiveNotFound: 'File hoặc folder không tồn tại.', sessionNotFound: 'Phiên upload không tồn tại hoặc đã kết thúc.', invalidChunk: 'Chunk không hợp lệ.', invalidChunkSize: 'Kích thước chunk không hợp lệ.', incompleteChunk: 'Dữ liệu chunk chưa hoàn chỉnh.', downloadFailed: 'Không thể tải file.' }
+    errors: { createSession: 'Không thể tạo phiên upload.', invalidResponse: 'Phản hồi server không hợp lệ.', connection: 'Không kết nối được server.', uploadFailed: 'Upload thất bại.', unauthorized: 'Upload token không hợp lệ hoặc đã hết quyền truy cập.', invalidFileName: 'Tên file không hợp lệ.', invalidFileSize: 'Dung lượng file không hợp lệ.', invalidFolder: 'Tên hoặc đường dẫn thư mục không hợp lệ.', folderExists: 'Tên thư mục đã tồn tại.', folderNotFound: 'Thư mục không tồn tại.', fileNotFound: 'File không tồn tại.', archiveEmpty: 'Cần chọn ít nhất một file hoặc folder.', archiveNotFound: 'File hoặc folder không tồn tại.', folderHasIncompleteUpload: 'Không thể xóa folder đang có upload chưa hoàn tất.', sessionNotFound: 'Phiên upload không tồn tại hoặc đã kết thúc.', invalidChunk: 'Chunk không hợp lệ.', invalidChunkSize: 'Kích thước chunk không hợp lệ.', incompleteChunk: 'Dữ liệu chunk chưa hoàn chỉnh.', downloadFailed: 'Không thể tải file.' }
   },
   en: {
     documentTitle: 'File Workspace', languageLabel: 'Language', title: 'Private file workspace', hint: 'Enter the upload token in the sidebar to access your files.', searchPlaceholder: 'Search current folder', myFiles: 'My files', folders: 'Folders', privateWorkspace: 'Private file workspace', nameColumn: 'Name', modifiedColumn: 'Modified', sizeColumn: 'Size', newLabel: 'New', openNavigation: 'Open navigation', toggleFolder: 'Toggle folder',
     tokenLabel: 'Upload token', tokenPlaceholder: 'Enter upload token', logout: 'Log out', loggedOut: 'You have been logged out and active uploads have been stopped.', tokenRequired: 'Enter the upload token first.',
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'Your files', newFolder: 'New folder', uploadFiles: 'Upload files', uploadFolder: 'Upload folder', refreshFiles: 'Refresh',
     dropZoneText: 'Drop files here to upload them to the current folder', dropZoneLabel: 'Choose files to upload to the current folder', home: 'Upload', filesLoading: 'Loading contents…', filesEmpty: 'This folder is empty.', refreshFilesHint: 'Select Refresh to view files with the current token.',
-    folder: 'Folder', download: 'Download', downloadSelected: 'Download ZIP ({count})', selectAll: 'Select all visible items', selectItem: 'Select {name}', downloadStarted: 'The download has started.', archiveStarted: 'ZIP download has started.', delete: 'Delete', deleteFile: 'Delete file', deletePermanently: 'Delete permanently', deleteConfirmation: 'Permanently delete “{name}”? This cannot be undone.', fileDeleted: 'File deleted.', close: 'Close', uploadListTitle: 'Upload activity',
+    folder: 'Folder', download: 'Download', downloadSelected: 'Download ZIP ({count})', deleteSelected: 'Delete ({count})', deleteSelectedTitle: 'Delete {count} selected items', selectAll: 'Select all visible items', selectItem: 'Select {name}', downloadStarted: 'The download has started.', archiveStarted: 'ZIP download has started.', delete: 'Delete', deleteFile: 'Delete file', deletePermanently: 'Delete permanently', deleteConfirmation: 'Permanently delete “{name}”? This cannot be undone.', deleteSelectionConfirmation: 'Permanently delete {count} selected items? Selected folders and all their contents will also be deleted. This cannot be undone.', fileDeleted: 'File deleted.', itemsDeleted: 'Deleted {count} items.', close: 'Close', uploadListTitle: 'Upload activity',
     folderName: 'Folder name', cancel: 'Cancel', createFolder: 'Create folder', creatingFolder: 'Creating…', folderCreated: 'Folder created.',
     states: { preparing: 'Preparing…', queued: 'Queued', uploading: 'Uploading…', paused: 'Paused', stopped: 'Stopped', completed: 'Completed', error: 'Error' },
     buttons: { pause: 'Pause', resume: 'Resume', stop: 'Stop' },
-    errors: { createSession: 'Could not create the upload session.', invalidResponse: 'The server returned an invalid response.', connection: 'Could not connect to the server.', uploadFailed: 'Upload failed.', unauthorized: 'The upload token is invalid or no longer has access.', invalidFileName: 'The file name is invalid.', invalidFileSize: 'The file size is invalid.', invalidFolder: 'The folder name or path is invalid.', folderExists: 'A folder with this name already exists.', folderNotFound: 'The folder does not exist.', fileNotFound: 'The file does not exist.', archiveEmpty: 'Select at least one file or folder.', archiveNotFound: 'The file or folder does not exist.', sessionNotFound: 'The upload session does not exist or has ended.', invalidChunk: 'The upload chunk is invalid.', invalidChunkSize: 'The upload chunk size is invalid.', incompleteChunk: 'The upload chunk is incomplete.', downloadFailed: 'Could not download the file.' }
+    errors: { createSession: 'Could not create the upload session.', invalidResponse: 'The server returned an invalid response.', connection: 'Could not connect to the server.', uploadFailed: 'Upload failed.', unauthorized: 'The upload token is invalid or no longer has access.', invalidFileName: 'The file name is invalid.', invalidFileSize: 'The file size is invalid.', invalidFolder: 'The folder name or path is invalid.', folderExists: 'A folder with this name already exists.', folderNotFound: 'The folder does not exist.', fileNotFound: 'The file does not exist.', archiveEmpty: 'Select at least one file or folder.', archiveNotFound: 'The file or folder does not exist.', folderHasIncompleteUpload: 'A folder with an incomplete upload cannot be deleted.', sessionNotFound: 'The upload session does not exist or has ended.', invalidChunk: 'The upload chunk is invalid.', invalidChunkSize: 'The upload chunk size is invalid.', incompleteChunk: 'The upload chunk is incomplete.', downloadFailed: 'Could not download the file.' }
   }
 };
 
@@ -52,6 +52,7 @@ const closeFolderDialogButton = document.querySelector('#close-folder-dialog');
 const cancelFolderDialogButton = document.querySelector('#cancel-folder-dialog');
 const deleteFileDialog = document.querySelector('#delete-file-dialog');
 const deleteFileForm = document.querySelector('#delete-file-form');
+const deleteFileDialogTitle = document.querySelector('#delete-file-dialog-title');
 const deleteFileDialogMessage = document.querySelector('#delete-file-dialog-message');
 const closeDeleteFileDialogButton = document.querySelector('#close-delete-file-dialog');
 const cancelDeleteFileButton = document.querySelector('#cancel-delete-file');
@@ -61,6 +62,7 @@ const folderTree = document.querySelector('#folder-tree');
 const myFilesButton = document.querySelector('#my-files');
 const workspaceSearch = document.querySelector('#workspace-search');
 const downloadSelectionButton = document.querySelector('#download-selection');
+const deleteSelectionButton = document.querySelector('#delete-selection');
 const selectAllCheckbox = document.querySelector('#select-all');
 const sidebar = document.querySelector('#sidebar');
 const sidebarToggle = document.querySelector('#sidebar-toggle');
@@ -76,7 +78,7 @@ const treeCache = new Map();
 const expandedTreePaths = new Set(['']);
 const newFilePaths = new Set();
 const selectedPaths = new Set();
-let pendingDeleteEntry;
+let pendingDelete;
 const storedLanguage = localStorage.getItem('file-workspace-language') ?? localStorage.getItem('file-upload-language');
 if (storedLanguage) {
   localStorage.setItem('file-workspace-language', storedLanguage);
@@ -107,6 +109,7 @@ document.querySelectorAll('[data-upload-trigger], #upload-files').forEach(elemen
 uploadFolderButton.addEventListener('click', () => folderInput.click());
 newFolderButton.addEventListener('click', openFolderDialog);
 downloadSelectionButton.addEventListener('click', downloadSelection);
+deleteSelectionButton.addEventListener('click', openDeleteSelectionDialog);
 selectAllCheckbox.addEventListener('change', () => {
   const visibleEntries = getDisplayedEntries();
   visibleEntries.forEach(entry => {
@@ -124,7 +127,7 @@ cancelFolderDialogButton.addEventListener('click', () => folderDialog.close());
 folderForm.addEventListener('submit', createFolder);
 closeDeleteFileDialogButton.addEventListener('click', () => deleteFileDialog.close());
 cancelDeleteFileButton.addEventListener('click', () => deleteFileDialog.close());
-deleteFileDialog.addEventListener('close', () => { pendingDeleteEntry = undefined; confirmDeleteFileButton.disabled = false; });
+deleteFileDialog.addEventListener('close', () => { pendingDelete = undefined; confirmDeleteFileButton.disabled = false; });
 deleteFileForm.addEventListener('submit', confirmDeleteFile);
 fileInput.addEventListener('change', () => { addFiles(fileInput.files, false); fileInput.value = ''; });
 folderInput.addEventListener('change', () => { addFiles(folderInput.files, true); folderInput.value = ''; });
@@ -349,6 +352,10 @@ function updateSelectionControls(visibleEntries = getDisplayedEntries()) {
   selectAllCheckbox.indeterminate = selectedVisible > 0 && selectedVisible < visibleEntries.length;
   downloadSelectionButton.disabled = selectedPaths.size === 0;
   downloadSelectionButton.textContent = t('downloadSelected').replace('{count}', String(selectedPaths.size));
+  deleteSelectionButton.disabled = selectedPaths.size === 0;
+  deleteSelectionButton.textContent = t('deleteSelected').replace('{count}', String(selectedPaths.size));
+  downloadSelectionButton.hidden = selectedPaths.size === 0;
+  deleteSelectionButton.hidden = selectedPaths.size === 0;
 }
 
 function renderFolderTree() {
@@ -455,24 +462,53 @@ function downloadSelection() {
 
 function openDeleteFileDialog(entry) {
   if (!tokenInput.value.trim()) { setStatus(t('tokenRequired'), 'error'); tokenInput.focus(); return; }
-  pendingDeleteEntry = { ...entry, path: joinPath(currentPath, entry.name) };
-  deleteFileDialogMessage.textContent = t('deleteConfirmation').replace('{name}', entry.name);
+  openDeleteDialog({ paths: [joinPath(currentPath, entry.name)], name: entry.name });
+}
+
+function openDeleteSelectionDialog() {
+  if (!tokenInput.value.trim() || selectedPaths.size === 0) return;
+  openDeleteDialog({ paths: [...selectedPaths] });
+}
+
+function openDeleteDialog(request) {
+  pendingDelete = request;
+  updateDeleteDialogCopy();
   deleteFileDialog.showModal();
   cancelDeleteFileButton.focus();
 }
 
 async function confirmDeleteFile(event) {
   event.preventDefault();
-  const entry = pendingDeleteEntry; const token = tokenInput.value.trim();
-  if (!entry || !token) return;
+  const request = pendingDelete; const token = tokenInput.value.trim();
+  if (!request || !token) return;
   confirmDeleteFileButton.disabled = true;
   try {
-    const response = await fetch(`/api/files?path=${encodeURIComponent(entry.path)}`, { method: 'DELETE', headers: { 'X-Upload-Token': token } });
+    const response = await fetch('/api/files/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Upload-Token': token }, body: JSON.stringify({ paths: request.paths }) });
     const data = await readResponse(response);
     if (!response.ok) throw new Error(response.status === 401 ? t('errors.unauthorized') : data.error || t('errors.fileNotFound'));
-    newFilePaths.delete(entry.path); selectedPaths.delete(entry.path); deleteFileDialog.close(); setStatus(t('fileDeleted'), 'success'); await loadFiles();
+    removeDeletedPaths(request.paths); treeCache.clear(); deleteFileDialog.close();
+    setStatus(request.paths.length === 1 ? t('fileDeleted') : t('itemsDeleted').replace('{count}', String(request.paths.length)), 'success');
+    await loadFiles();
   } catch (error) { setStatus(localizeError(error.message || t('errors.fileNotFound')), 'error'); }
   finally { if (deleteFileDialog.open) confirmDeleteFileButton.disabled = false; }
+}
+
+function updateDeleteDialogCopy() {
+  if (!pendingDelete) return;
+  const count = String(pendingDelete.paths.length);
+  const isSingleFile = Boolean(pendingDelete.name);
+  deleteFileDialogTitle.textContent = isSingleFile ? t('deleteFile') : t('deleteSelectedTitle').replace('{count}', count);
+  deleteFileDialogMessage.textContent = isSingleFile
+    ? t('deleteConfirmation').replace('{name}', pendingDelete.name)
+    : t('deleteSelectionConfirmation').replace('{count}', count);
+}
+
+function removeDeletedPaths(deletedPaths) {
+  [newFilePaths, selectedPaths, expandedTreePaths].forEach(paths => {
+    for (const path of paths)
+      if (deletedPaths.some(deletedPath => path === deletedPath || path.startsWith(`${deletedPath}/`))) paths.delete(path);
+  });
+  expandedTreePaths.add('');
 }
 
 function logout() {
@@ -498,7 +534,7 @@ function applyLanguage() {
   document.querySelectorAll('[data-i18n-placeholder]').forEach(element => { element.placeholder = t(element.dataset.i18nPlaceholder); });
   document.querySelectorAll('[data-i18n-title]').forEach(element => { element.title = t(element.dataset.i18nTitle); });
   document.querySelectorAll('[data-i18n-aria-label]').forEach(element => { element.setAttribute('aria-label', t(element.dataset.i18nAriaLabel)); });
-  if (pendingDeleteEntry) deleteFileDialogMessage.textContent = t('deleteConfirmation').replace('{name}', pendingDeleteEntry.name);
+  updateDeleteDialogCopy();
   languageSelect.setAttribute('aria-label', t('languageLabel')); filesPanel.setAttribute('aria-label', t('filesTitle')); uploadPanel.setAttribute('aria-label', t('uploadListTitle'));
   uploads.forEach(upload => upload.render()); renderFileManager(); renderFolderTree(); updateUploadCount(); updateSelectionControls();
 }
@@ -511,4 +547,4 @@ function t(key) { return key.split('.').reduce((value, part) => value?.[part], c
 function joinPath(...parts) { return parts.filter(Boolean).join('/').replace(/\/{2,}/g, '/'); }
 function formatBytes(bytes) { if (!Number.isFinite(bytes) || bytes <= 0) return '0 B'; const units = ['B', 'KB', 'MB', 'GB', 'TB']; const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1); return `${(bytes / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}`; }
 function formatDate(value) { const date = new Date(value); if (Number.isNaN(date.getTime())) return '—'; return new Intl.DateTimeFormat(currentLanguage === 'vi' ? 'vi-VN' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(date); }
-function localizeError(message) { const known = { 'Tên file không hợp lệ.': 'invalidFileName', 'Dung lượng file không hợp lệ.': 'invalidFileSize', 'Thư mục đích không hợp lệ.': 'invalidFolder', 'Tên hoặc đường dẫn thư mục không hợp lệ.': 'invalidFolder', 'Đường dẫn thư mục không hợp lệ.': 'invalidFolder', 'Tên thư mục đã tồn tại.': 'folderExists', 'Thư mục không tồn tại.': 'folderNotFound', 'File không tồn tại.': 'fileNotFound', 'Cần chọn ít nhất một file hoặc folder.': 'archiveEmpty', 'File hoặc folder không tồn tại.': 'archiveNotFound', 'Phiên upload không tồn tại hoặc đã kết thúc.': 'sessionNotFound', 'Chunk không hợp lệ.': 'invalidChunk', 'Kích thước chunk không hợp lệ.': 'invalidChunkSize', 'Dữ liệu chunk chưa hoàn chỉnh.': 'incompleteChunk' }; return known[message] ? t(`errors.${known[message]}`) : message; }
+function localizeError(message) { const known = { 'Tên file không hợp lệ.': 'invalidFileName', 'Dung lượng file không hợp lệ.': 'invalidFileSize', 'Thư mục đích không hợp lệ.': 'invalidFolder', 'Tên hoặc đường dẫn thư mục không hợp lệ.': 'invalidFolder', 'Đường dẫn thư mục không hợp lệ.': 'invalidFolder', 'Tên thư mục đã tồn tại.': 'folderExists', 'Thư mục không tồn tại.': 'folderNotFound', 'File không tồn tại.': 'fileNotFound', 'Cần chọn ít nhất một file hoặc folder.': 'archiveEmpty', 'File hoặc folder không tồn tại.': 'archiveNotFound', 'Không thể xóa folder đang có upload chưa hoàn tất.': 'folderHasIncompleteUpload', 'Phiên upload không tồn tại hoặc đã kết thúc.': 'sessionNotFound', 'Chunk không hợp lệ.': 'invalidChunk', 'Kích thước chunk không hợp lệ.': 'invalidChunkSize', 'Dữ liệu chunk chưa hoàn chỉnh.': 'incompleteChunk' }; return known[message] ? t(`errors.${known[message]}`) : message; }

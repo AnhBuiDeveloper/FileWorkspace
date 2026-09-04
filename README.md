@@ -12,7 +12,7 @@ It is deliberately small and self-contained. Today it is not a multi-tenant clou
 
 ### Highlights
 
-- Browse the file workspace, navigate folders, create folders, download individual or selected files/folders as a ZIP archive, and permanently delete files after confirmation.
+- Browse the file workspace, navigate folders, create folders, download individual or selected files/folders as a ZIP archive, and permanently delete selected files or folders after confirmation.
 - Upload multiple files through selection or drag and drop, including an entire local folder.
 - Upload to the currently open folder, with independent per-file progress, speed, pause, resume, and stop controls.
 - Stream large files directly to disk with resumable chunk uploads.
@@ -25,11 +25,11 @@ It is deliberately small and self-contained. Today it is not a multi-tenant clou
 
 Use the checkbox beside a file or folder to build a selection, or use **Select all** for the items currently visible in the open folder. **Download ZIP** creates one streamed archive containing the selected files and folder hierarchy, including empty folders. It skips incomplete hidden `.uploading` files and avoids duplicating a file when both it and a parent folder are selected. Individual-file download remains available for a one-file download.
 
-Deleting a file always asks for confirmation. A confirmed deletion is permanent: there is no recycle bin, restore action, or audit trail. Folder deletion is intentionally not available in the current interface.
+Deleting one or more selected items always asks for confirmation. A confirmed deletion is permanent: selected folders are removed recursively with their contents, and there is no recycle bin, restore action, or audit trail. A folder containing an incomplete upload cannot be deleted until that upload is stopped or completed.
 
 ### Intended use and scope
 
-Use this project as a private file workspace for people who already trust one another: a home lab, small internal team, private server, or VPN-protected environment. A single shared token currently grants access to browse, create folders, upload, download files or selected ZIP archives, and permanently delete files. Protect that token accordingly.
+Use this project as a private file workspace for people who already trust one another: a home lab, small internal team, private server, or VPN-protected environment. A single shared token currently grants access to browse, create folders, upload, download files or selected ZIP archives, and permanently delete selected files or folders. Protect that token accordingly.
 
 For Internet-facing or multi-user use, add an authentication model, authorization, HTTPS, storage and file-size limits, rate limiting, malware scanning, auditing, backups, and a reverse-proxy/WAF posture appropriate to your environment.
 
@@ -121,7 +121,7 @@ Project được chủ đích giữ gọn và độc lập. Hiện tại đây c
 
 ### Điểm nổi bật
 
-- Duyệt không gian file, đi vào folder, tạo folder, tải file riêng lẻ hoặc nhiều file/folder đã chọn dưới dạng ZIP, xóa vĩnh viễn file sau khi xác nhận.
+- Duyệt không gian file, đi vào folder, tạo folder, tải file riêng lẻ hoặc nhiều file/folder đã chọn dưới dạng ZIP, xóa vĩnh viễn file/folder đã chọn sau khi xác nhận.
 - Upload nhiều file bằng chọn file hoặc kéo-thả, gồm cả một local folder.
 - Upload vào folder đang mở; mỗi file có tiến độ, tốc độ, pause, resume và stop độc lập.
 - Stream file lớn trực tiếp xuống ổ đĩa bằng upload theo chunk có thể resume.
@@ -134,11 +134,11 @@ Project được chủ đích giữ gọn và độc lập. Hiện tại đây c
 
 Dùng checkbox cạnh mỗi file/folder để chọn nhiều mục, hoặc **Chọn tất cả** các mục đang hiển thị trong folder hiện tại. **Tải ZIP** tạo một archive stream gồm file và cấu trúc folder đã chọn, kể cả folder rỗng. Archive bỏ qua file `.uploading` đang ẩn và không lặp file khi đồng thời chọn file đó cùng folder cha. Tải trực tiếp từng file vẫn khả dụng khi chỉ cần một file.
 
-Xóa file luôn yêu cầu xác nhận. Sau khi xác nhận, file bị xóa vĩnh viễn: hiện chưa có thùng rác, khôi phục hay audit trail. UI hiện tại chủ đích chưa hỗ trợ xóa folder.
+Xóa một hoặc nhiều mục đã chọn luôn yêu cầu xác nhận. Sau khi xác nhận, các folder được chọn sẽ bị xóa đệ quy cùng toàn bộ nội dung; thao tác là vĩnh viễn vì hiện chưa có thùng rác, khôi phục hay audit trail. Không thể xóa folder đang có upload chưa hoàn tất cho đến khi upload đó dừng hoặc hoàn tất.
 
 ### Mục đích sử dụng và phạm vi
 
-Project phù hợp làm không gian file riêng cho những người đã tin cậy nhau: home lab, nhóm nội bộ nhỏ, private server hoặc môi trường có VPN. Một shared token hiện cấp quyền duyệt file, tạo folder, upload, tải file hoặc ZIP các mục đã chọn và xóa file vĩnh viễn; cần bảo vệ token tương ứng.
+Project phù hợp làm không gian file riêng cho những người đã tin cậy nhau: home lab, nhóm nội bộ nhỏ, private server hoặc môi trường có VPN. Một shared token hiện cấp quyền duyệt file, tạo folder, upload, tải file hoặc ZIP các mục đã chọn và xóa vĩnh viễn file/folder đã chọn; cần bảo vệ token tương ứng.
 
 Nếu public Internet hoặc phục vụ nhiều người dùng, hãy bổ sung mô hình đăng nhập và phân quyền, HTTPS, giới hạn dung lượng lưu trữ/kích thước file, rate limit, quét mã độc, audit, backup và reverse proxy/WAF phù hợp với môi trường.
 
@@ -187,7 +187,7 @@ Thư mục [`deploy/`](deploy/README.md) có cấu hình tham khảo Linux syste
 - File `.uploading` đang hiển thị nghĩa là upload vẫn được ghi. Nó chỉ được xóa hoặc đổi tên khi request hoàn tất.
 - Pause/Resume giữ tiến độ khi trang trình duyệt và process server vẫn đang hoạt động. Reload trang hoặc restart server sẽ tạo một phiên upload mới.
 - ZIP được tạo dưới dạng response stream và không được lưu lại trong `Upload/`. Cần giữ đủ dung lượng cho các file nguồn và bảo đảm proxy không buffer response archive.
-- Xóa file là không thể hoàn tác. Hãy backup dữ liệu cần giữ; ứng dụng chưa có thùng rác hoặc khôi phục.
+- Xóa file/folder là không thể hoàn tác. Hãy backup dữ liệu cần giữ; ứng dụng chưa có thùng rác hoặc khôi phục.
 - Trình duyệt ghi nhớ upload token trên thiết bị hiện tại đến khi **Đăng xuất**. Không dùng trên browser profile dùng chung; hãy đăng xuất khi hoàn tất.
 - Lưu file upload ngoài `wwwroot`; project này đã áp dụng nguyên tắc đó.
 - Dùng HTTPS trước khi public service. Nginx sample chỉ chạy HTTP và không tự cấp certificate.

@@ -103,6 +103,37 @@ public sealed class FileManagerServiceTests
         Assert.Equal(StatusCodes.Status404NotFound, exception.StatusCode);
     }
 
+    [Fact]
+    public async Task DeleteEntries_removes_selected_folders_recursively_and_deduplicates_descendants()
+    {
+        using var workspace = new TemporaryWorkspace();
+        var service = new FileManagerService(workspace.Environment);
+        service.CreateFolder(new CreateFolderRequest("", "documents"));
+        var bytes = new byte[] { 1 };
+        var upload = await service.StartUploadAsync("note.txt", "documents", bytes.Length, CancellationToken.None);
+        await service.WriteChunkAsync(upload.UploadId, 0, bytes.Length, new MemoryStream(bytes), CancellationToken.None);
+
+        service.DeleteEntries(["documents", "documents/note.txt"]);
+
+        Assert.Empty(service.List("").Entries);
+        var exception = Assert.Throws<FileManagerException>(() => service.GetDownload("documents/note.txt"));
+        Assert.Equal(StatusCodes.Status404NotFound, exception.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteEntries_rejects_folder_with_an_incomplete_upload()
+    {
+        using var workspace = new TemporaryWorkspace();
+        var service = new FileManagerService(workspace.Environment);
+        service.CreateFolder(new CreateFolderRequest("", "documents"));
+        await service.StartUploadAsync("note.txt", "documents", 1, CancellationToken.None);
+
+        var exception = Assert.Throws<FileManagerException>(() => service.DeleteEntries(["documents"]));
+
+        Assert.Equal(StatusCodes.Status409Conflict, exception.StatusCode);
+        Assert.Single(service.List("").Entries);
+    }
+
     [Theory]
     [InlineData("..")]
     [InlineData("../outside")]
