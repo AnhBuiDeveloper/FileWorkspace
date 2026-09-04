@@ -1,5 +1,7 @@
 const CHUNK_SIZE = 8 * 1024 * 1024;
 const MAX_CONCURRENT_UPLOADS = 3;
+const SPEED_SAMPLE_WINDOW_MS = 4000;
+const SPEED_MIN_SAMPLE_MS = 250;
 
 const copy = {
   vi: {
@@ -185,6 +187,7 @@ class UploadTask {
     this.nextChunk = 0;
     this.xhr = null;
     this.speed = 0;
+    this.speedSamples = [];
     this.error = '';
     this.element = null;
   }
@@ -224,7 +227,7 @@ class UploadTask {
         this.render();
       }
     } catch (error) {
-      if (!['paused', 'stopped'].includes(this.state)) { this.state = 'error'; this.error = localizeError(error.message || t('errors.uploadFailed')); }
+      if (!['paused', 'stopped'].includes(this.state)) { this.state = 'error'; this.error = localizeError(error.message || t('errors.uploadFailed')); this.resetSpeed(); }
     } finally {
       this.xhr = null; activeTransfers -= 1; this.render(); scheduleUploads();
     }
@@ -235,13 +238,12 @@ class UploadTask {
     const chunk = this.file.slice(start, Math.min(start + CHUNK_SIZE, this.file.size));
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest(); this.xhr = xhr;
-      let lastLoaded = 0; let lastTime = performance.now();
       xhr.open('PUT', `/api/uploads/${this.uploadId}/chunks/${chunkIndex}`);
       xhr.setRequestHeader('Content-Type', 'application/octet-stream'); xhr.setRequestHeader('X-Upload-Token', this.token);
       xhr.upload.onprogress = event => {
         if (!event.lengthComputable || this.state !== 'uploading') return;
-        const now = performance.now(); this.speed = (event.loaded - lastLoaded) / Math.max((now - lastTime) / 1000, .001);
-        lastLoaded = event.loaded; lastTime = now; this.render(this.uploadedBytes + event.loaded);
+        const currentBytes = this.uploadedBytes + event.loaded;
+        this.updateSpeed(currentBytes); this.render(currentBytes);
       };
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) { try { resolve(JSON.parse(xhr.responseText)); } catch { reject(new Error(t('errors.invalidResponse'))); } return; }
@@ -253,14 +255,27 @@ class UploadTask {
     });
   }
 
-  pause() { if (!['preparing', 'queued', 'uploading'].includes(this.state)) return; this.state = 'paused'; this.speed = 0; this.xhr?.abort(); this.render(); updateUploadCount(); }
+  updateSpeed(currentBytes) {
+    const now = performance.now();
+    this.speedSamples.push({ bytes: currentBytes, time: now });
+    const cutoff = now - SPEED_SAMPLE_WINDOW_MS;
+    while (this.speedSamples.length > 1 && this.speedSamples[0].time < cutoff) this.speedSamples.shift();
+    const firstSample = this.speedSamples[0];
+    const elapsedMs = now - firstSample.time;
+    if (elapsedMs >= SPEED_MIN_SAMPLE_MS)
+      this.speed = Math.max(0, (currentBytes - firstSample.bytes) / (elapsedMs / 1000));
+  }
+
+  resetSpeed() { this.speed = 0; this.speedSamples = []; }
+
+  pause() { if (!['preparing', 'queued', 'uploading'].includes(this.state)) return; this.state = 'paused'; this.resetSpeed(); this.xhr?.abort(); this.render(); updateUploadCount(); }
   resume() { if (this.state !== 'paused') return; this.state = this.uploadId ? 'queued' : 'preparing'; this.error = ''; this.render(); scheduleUploads(); }
-  async stop() { if (['stopped', 'completed'].includes(this.state)) return; this.state = 'stopped'; this.speed = 0; this.xhr?.abort(); this.render(); updateUploadCount(); await this.deleteSession(); }
+  async stop() { if (['stopped', 'completed'].includes(this.state)) return; this.state = 'stopped'; this.resetSpeed(); this.xhr?.abort(); this.render(); updateUploadCount(); await this.deleteSession(); }
   async deleteSession() { if (!this.uploadId) return; try { await fetch(`/api/uploads/${this.uploadId}`, { method: 'DELETE', headers: { 'X-Upload-Token': this.token } }); } catch { /* local state is already stopped */ } }
 
   complete() {
     if (this.state === 'completed') return;
-    this.state = 'completed'; this.uploadedBytes = this.file.size; this.speed = 0;
+    this.state = 'completed'; this.uploadedBytes = this.file.size; this.resetSpeed();
     newFilePaths.add(joinPath(this.targetPath, this.file.name));
     if (currentPath === this.targetPath) loadFiles();
     window.setTimeout(() => {
