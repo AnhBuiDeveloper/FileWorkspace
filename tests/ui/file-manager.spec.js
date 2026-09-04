@@ -43,3 +43,18 @@ test('creates a folder and uploads a file into it', async ({ page }) => {
   await expect(page.getByText('Completed', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: fileName, exact: true })).toBeVisible();
 });
+
+test('renders the Explorer tree and keeps the compact layout within the viewport', async ({ page }) => {
+  await signIn(page);
+  const folderName = 'tree-' + Date.now();
+
+  await page.getByRole('button', { name: 'New folder' }).click();
+  await page.locator('#folder-name').fill(folderName);
+  await page.getByRole('button', { name: 'Create folder', exact: true }).click();
+  await expect(page.getByLabel(`Folder: ${folderName}`, { exact: true })).toBeVisible();
+
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  await expect(page.locator('#sidebar')).toHaveClass(/is-open/);
+  expect(await page.locator('body').evaluate(body => body.scrollWidth <= window.innerWidth)).toBeTruthy();
+});

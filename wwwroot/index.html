@@ -8,80 +8,52 @@
   <link rel="stylesheet" href="/site.css">
 </head>
 <body>
-  <main class="card">
-    <div class="top-line">
-      <p class="eyebrow">FILE WORKSPACE</p>
-      <label class="language-picker" for="language-select">
-        <span class="sr-only" data-i18n="languageLabel">Ngôn ngữ</span>
-        <select id="language-select" aria-label="Ngôn ngữ">
-          <option value="vi">Tiếng Việt</option>
-          <option value="en">English</option>
-        </select>
-      </label>
-    </div>
-    <h1 data-i18n="title">Gửi file nhanh</h1>
-    <p class="hint" data-i18n="hint">Chọn nhiều file. Mỗi file có tiến độ riêng và có thể pause, resume hoặc stop.</p>
-
-    <div class="token-field">
-      <div class="token-heading">
-        <label for="upload-token" data-i18n="tokenLabel">Upload token</label>
-        <button id="logout-button" class="logout-button" type="button" hidden data-i18n="logout">Logout</button>
+  <div class="workspace-shell">
+    <header class="app-header">
+      <button id="sidebar-toggle" class="header-icon" type="button" data-i18n-aria-label="openNavigation" aria-label="Mở điều hướng" aria-expanded="false">☰</button>
+      <a class="brand" href="/" aria-label="File Workspace"><span class="brand-mark">☁</span><span>File Workspace</span></a>
+      <label class="search-field" for="workspace-search"><span aria-hidden="true">⌕</span><input id="workspace-search" type="search" autocomplete="off" data-i18n-placeholder="searchPlaceholder" placeholder="Tìm trong folder hiện tại"></label>
+      <div class="header-actions">
+        <label class="language-picker" for="language-select"><span class="sr-only" data-i18n="languageLabel">Ngôn ngữ</span><select id="language-select" aria-label="Ngôn ngữ"><option value="vi">Tiếng Việt</option><option value="en">English</option></select></label>
+        <button id="logout-button" class="quiet-button" type="button" hidden data-i18n="logout">Đăng xuất</button>
       </div>
-      <input id="upload-token" type="password" autocomplete="off" data-i18n-placeholder="tokenPlaceholder" placeholder="Nhập token để upload">
-    </div>
-
-    <input id="file-input" type="file" multiple hidden>
-    <input id="folder-input" type="file" webkitdirectory directory multiple hidden>
-
-    <section id="files-panel" class="file-manager" hidden aria-live="polite" aria-label="Files">
-      <div class="manager-heading">
-        <div>
-          <p class="section-kicker" data-i18n="fileManagerKicker">FILE MANAGER</p>
-          <h2 data-i18n="filesTitle">File của bạn</h2>
+    </header>
+    <div id="sidebar-backdrop" class="sidebar-backdrop" hidden></div>
+    <aside id="sidebar" class="sidebar" aria-label="Folder navigation">
+      <div class="sidebar-actions">
+        <button id="upload-files" class="action-button primary" type="button"><span aria-hidden="true">＋</span><span data-i18n="uploadFiles">Upload file</span></button>
+        <button id="new-folder" class="action-button secondary" type="button"><span aria-hidden="true">▣</span><span data-i18n="newFolder">Tạo folder</span></button>
+      </div>
+      <div class="token-field"><label for="upload-token" data-i18n="tokenLabel">Upload token</label><input id="upload-token" type="password" autocomplete="off" data-i18n-placeholder="tokenPlaceholder" placeholder="Nhập token để truy cập"></div>
+      <nav class="sidebar-nav" aria-label="Workspace"><button id="my-files" class="nav-item" type="button"><span aria-hidden="true">⌂</span><span data-i18n="myFiles">File của tôi</span></button></nav>
+      <section class="folder-explorer" aria-labelledby="folder-tree-title">
+        <div class="sidebar-section-heading"><h2 id="folder-tree-title" data-i18n="folders">Folders</h2><button id="refresh-files" class="header-icon compact" type="button" data-i18n-title="refreshFiles" data-i18n-aria-label="refreshFiles" aria-label="Làm mới">↻</button></div>
+        <div id="folder-tree" class="folder-tree" role="tree"></div>
+      </section>
+      <p class="sidebar-note" data-i18n="privateWorkspace">Không gian file riêng tư</p>
+    </aside>
+    <main class="workspace-main">
+      <section id="files-panel" class="file-manager" hidden aria-live="polite" aria-label="Files">
+        <div class="content-heading">
+          <div><p class="section-kicker">FILE WORKSPACE</p><h1 data-i18n="filesTitle">File của bạn</h1></div>
+          <div class="manager-actions"><button id="upload-folder" class="action-button secondary" type="button" data-i18n="uploadFolder">Upload folder</button><button class="action-button primary desktop-upload" type="button" data-upload-trigger data-i18n="uploadFiles">Upload file</button></div>
         </div>
-        <div class="manager-actions">
-          <button id="new-folder" class="action-button secondary" type="button" data-i18n="newFolder">Tạo folder</button>
-          <button id="upload-files" class="action-button primary" type="button" data-i18n="uploadFiles">Upload file</button>
-          <button id="upload-folder" class="action-button primary" type="button" data-i18n="uploadFolder">Upload folder</button>
-          <button id="refresh-files" class="icon-button" type="button" data-i18n-title="refreshFiles" data-i18n-aria-label="refreshFiles" aria-label="Làm mới">↻</button>
+        <nav id="breadcrumbs" class="breadcrumbs" aria-label="Current folder"></nav>
+        <div id="drop-zone" class="drop-zone" tabindex="0" role="button" data-i18n-aria-label="dropZoneLabel"><span class="drop-zone-icon" aria-hidden="true">⇧</span><span data-i18n="dropZoneText">Kéo thả file vào đây để upload vào folder hiện tại</span></div>
+        <p id="files-status" class="files-status"></p>
+        <div class="file-table" role="region" data-i18n-aria-label="filesTitle" aria-label="Files">
+          <div class="file-table-header" aria-hidden="true"><span data-i18n="nameColumn">Tên</span><span data-i18n="modifiedColumn">Chỉnh sửa</span><span data-i18n="sizeColumn">Dung lượng</span><span></span></div>
+          <div id="files-list" class="files-list" role="list"></div>
         </div>
-      </div>
-
-      <div id="drop-zone" class="drop-zone" tabindex="0" role="button" data-i18n-aria-label="dropZoneLabel">
-        <span class="drop-zone-icon">↑</span>
-        <span data-i18n="dropZoneText">Kéo thả file vào đây để upload vào folder hiện tại</span>
-      </div>
-
-      <nav id="breadcrumbs" class="breadcrumbs" aria-label="Current folder"></nav>
-      <p id="files-status" class="files-status"></p>
-      <div id="files-list" class="files-list" role="list"></div>
-    </section>
-
-    <section id="upload-panel" class="upload-panel" hidden aria-live="polite" aria-label="Danh sách upload">
-      <div class="upload-heading">
-        <h2 data-i18n="uploadListTitle">Đang gửi file</h2>
-        <span id="upload-count"></span>
-      </div>
-      <div id="upload-list" class="upload-list"></div>
-    </section>
-
-    <p id="status" class="status" role="status"></p>
-  </main>
-  <dialog id="create-folder-dialog" class="folder-dialog">
-    <form id="create-folder-form" method="dialog">
-      <div class="dialog-heading">
-        <h2 data-i18n="newFolder">Tạo folder</h2>
-        <button id="close-folder-dialog" class="icon-button" type="button" aria-label="Close">×</button>
-      </div>
-      <label class="dialog-label" for="folder-name" data-i18n="folderName">Tên folder</label>
-      <input id="folder-name" name="folder-name" type="text" maxlength="120" autocomplete="off" required>
-      <p id="folder-dialog-status" class="dialog-status" role="status"></p>
-      <div class="dialog-actions">
-        <button id="cancel-folder-dialog" class="action-button secondary" type="button" data-i18n="cancel">Hủy</button>
-        <button class="action-button primary" type="submit" data-i18n="createFolder">Tạo folder</button>
-      </div>
-    </form>
-  </dialog>
+      </section>
+      <section id="auth-panel" class="auth-panel" aria-labelledby="auth-title"><span class="auth-icon" aria-hidden="true">☁</span><h1 id="auth-title" data-i18n="title">Không gian file riêng</h1><p data-i18n="hint">Nhập upload token trong thanh bên để truy cập file của bạn.</p></section>
+      <section id="upload-panel" class="upload-panel" hidden aria-live="polite" aria-label="Danh sách upload"><div class="upload-heading"><h2 data-i18n="uploadListTitle">Tiến trình upload</h2><span id="upload-count"></span></div><div id="upload-list" class="upload-list"></div></section>
+      <p id="status" class="status" role="status"></p>
+    </main>
+  </div>
+  <input id="file-input" type="file" multiple hidden>
+  <input id="folder-input" type="file" webkitdirectory directory multiple hidden>
+  <dialog id="create-folder-dialog" class="folder-dialog"><form id="create-folder-form" method="dialog"><div class="dialog-heading"><h2 data-i18n="newFolder">Tạo folder</h2><button id="close-folder-dialog" class="header-icon compact" type="button" aria-label="Close">×</button></div><label class="dialog-label" for="folder-name" data-i18n="folderName">Tên folder</label><input id="folder-name" name="folder-name" type="text" maxlength="120" autocomplete="off" required><p id="folder-dialog-status" class="dialog-status" role="status"></p><div class="dialog-actions"><button id="cancel-folder-dialog" class="action-button secondary" type="button" data-i18n="cancel">Hủy</button><button class="action-button primary" type="submit" data-i18n="createFolder">Tạo folder</button></div></form></dialog>
   <script src="/site.js"></script>
 </body>
 </html>

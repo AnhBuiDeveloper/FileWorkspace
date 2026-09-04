@@ -3,7 +3,7 @@ const MAX_CONCURRENT_UPLOADS = 3;
 
 const copy = {
   vi: {
-    documentTitle: 'File Workspace', languageLabel: 'Ngôn ngữ', title: 'Không gian file riêng', hint: 'Quản lý folder, upload nhiều file và tải xuống an toàn với upload token.',
+    documentTitle: 'File Workspace', languageLabel: 'Ngôn ngữ', title: 'Không gian file riêng', hint: 'Nhập upload token trong thanh bên để truy cập file của bạn.', searchPlaceholder: 'Tìm trong folder hiện tại', myFiles: 'File của tôi', folders: 'Folders', privateWorkspace: 'Không gian file riêng tư', nameColumn: 'Tên', modifiedColumn: 'Chỉnh sửa', sizeColumn: 'Dung lượng', openNavigation: 'Mở điều hướng', toggleFolder: 'Mở hoặc đóng folder',
     tokenLabel: 'Upload token', tokenPlaceholder: 'Nhập upload token', logout: 'Đăng xuất', loggedOut: 'Đã đăng xuất và dừng các upload đang hoạt động.', tokenRequired: 'Nhập upload token trước.',
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'File của bạn', newFolder: 'Tạo folder', uploadFiles: 'Upload file', uploadFolder: 'Upload folder', refreshFiles: 'Làm mới',
     dropZoneText: 'Kéo thả file vào đây để upload vào folder hiện tại', dropZoneLabel: 'Chọn file để upload vào folder hiện tại', home: 'Upload', filesLoading: 'Đang tải nội dung…', filesEmpty: 'Folder này đang trống.', refreshFilesHint: 'Nhấn Làm mới để xem file với token hiện tại.',
@@ -14,7 +14,7 @@ const copy = {
     errors: { createSession: 'Không thể tạo phiên upload.', invalidResponse: 'Phản hồi server không hợp lệ.', connection: 'Không kết nối được server.', uploadFailed: 'Upload thất bại.', unauthorized: 'Upload token không hợp lệ hoặc đã hết quyền truy cập.', invalidFileName: 'Tên file không hợp lệ.', invalidFileSize: 'Dung lượng file không hợp lệ.', invalidFolder: 'Tên hoặc đường dẫn thư mục không hợp lệ.', folderExists: 'Tên thư mục đã tồn tại.', folderNotFound: 'Thư mục không tồn tại.', sessionNotFound: 'Phiên upload không tồn tại hoặc đã kết thúc.', invalidChunk: 'Chunk không hợp lệ.', invalidChunkSize: 'Kích thước chunk không hợp lệ.', incompleteChunk: 'Dữ liệu chunk chưa hoàn chỉnh.', downloadFailed: 'Không thể tải file.' }
   },
   en: {
-    documentTitle: 'File Workspace', languageLabel: 'Language', title: 'Private file workspace', hint: 'Manage folders, upload multiple files, and download securely with an upload token.',
+    documentTitle: 'File Workspace', languageLabel: 'Language', title: 'Private file workspace', hint: 'Enter the upload token in the sidebar to access your files.', searchPlaceholder: 'Search current folder', myFiles: 'My files', folders: 'Folders', privateWorkspace: 'Private file workspace', nameColumn: 'Name', modifiedColumn: 'Modified', sizeColumn: 'Size', openNavigation: 'Open navigation', toggleFolder: 'Toggle folder',
     tokenLabel: 'Upload token', tokenPlaceholder: 'Enter upload token', logout: 'Log out', loggedOut: 'You have been logged out and active uploads have been stopped.', tokenRequired: 'Enter the upload token first.',
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'Your files', newFolder: 'New folder', uploadFiles: 'Upload files', uploadFolder: 'Upload folder', refreshFiles: 'Refresh',
     dropZoneText: 'Drop files here to upload them to the current folder', dropZoneLabel: 'Choose files to upload to the current folder', home: 'Upload', filesLoading: 'Loading contents…', filesEmpty: 'This folder is empty.', refreshFilesHint: 'Select Refresh to view files with the current token.',
@@ -50,6 +50,13 @@ const folderNameInput = document.querySelector('#folder-name');
 const folderDialogStatus = document.querySelector('#folder-dialog-status');
 const closeFolderDialogButton = document.querySelector('#close-folder-dialog');
 const cancelFolderDialogButton = document.querySelector('#cancel-folder-dialog');
+const authPanel = document.querySelector('#auth-panel');
+const folderTree = document.querySelector('#folder-tree');
+const myFilesButton = document.querySelector('#my-files');
+const workspaceSearch = document.querySelector('#workspace-search');
+const sidebar = document.querySelector('#sidebar');
+const sidebarToggle = document.querySelector('#sidebar-toggle');
+const sidebarBackdrop = document.querySelector('#sidebar-backdrop');
 
 const uploads = [];
 let activeTransfers = 0;
@@ -57,6 +64,8 @@ let currentPath = '';
 let listedToken = '';
 let entries = [];
 let fileRequestVersion = 0;
+const treeCache = new Map();
+const expandedTreePaths = new Set(['']);
 const storedLanguage = localStorage.getItem('file-workspace-language') ?? localStorage.getItem('file-upload-language');
 if (storedLanguage) {
   localStorage.setItem('file-workspace-language', storedLanguage);
@@ -83,9 +92,13 @@ languageSelect.addEventListener('change', () => {
 });
 logoutButton.addEventListener('click', logout);
 refreshFilesButton.addEventListener('click', () => loadFiles());
-uploadFilesButton.addEventListener('click', () => fileInput.click());
+document.querySelectorAll('[data-upload-trigger], #upload-files').forEach(element => element.addEventListener('click', () => fileInput.click()));
 uploadFolderButton.addEventListener('click', () => folderInput.click());
 newFolderButton.addEventListener('click', openFolderDialog);
+myFilesButton.addEventListener('click', () => loadFiles(''));
+workspaceSearch.addEventListener('input', renderFileManager);
+sidebarToggle.addEventListener('click', () => setSidebarOpen(!sidebar.classList.contains('is-open')));
+sidebarBackdrop.addEventListener('click', () => setSidebarOpen(false));
 closeFolderDialogButton.addEventListener('click', () => folderDialog.close());
 cancelFolderDialogButton.addEventListener('click', () => folderDialog.close());
 folderForm.addEventListener('submit', createFolder);
@@ -246,7 +259,10 @@ async function loadFiles(path = currentPath) {
     const data = await readResponse(response);
     if (!response.ok) throw new Error(response.status === 401 ? t('errors.unauthorized') : data.error || t('errors.connection'));
     if (requestVersion !== fileRequestVersion || token !== tokenInput.value.trim()) return;
-    currentPath = data.path || ''; entries = Array.isArray(data.entries) ? data.entries : []; listedToken = token; renderFileManager();
+    currentPath = data.path || ''; entries = Array.isArray(data.entries) ? data.entries : []; listedToken = token;
+    treeCache.set(currentPath, entries.filter(entry => entry.type === 'folder'));
+    expandPathAncestors(currentPath);
+    renderFileManager(); renderFolderTree(); closeSidebarOnNavigation();
   } catch (error) {
     if (requestVersion !== fileRequestVersion) return;
     entries = []; filesList.replaceChildren(); filesStatus.textContent = localizeError(error.message || t('errors.connection'));
@@ -255,22 +271,81 @@ async function loadFiles(path = currentPath) {
 
 function renderFileManager() {
   renderBreadcrumbs(); filesList.replaceChildren();
-  if (!entries.length) { filesStatus.textContent = t('filesEmpty'); return; }
-  filesStatus.textContent = `${entries.length} ${currentLanguage === 'vi' ? 'mục' : entries.length === 1 ? 'item' : 'items'}`;
-  entries.forEach(entry => {
+  const query = workspaceSearch.value.trim().toLocaleLowerCase();
+  const displayedEntries = query ? entries.filter(entry => entry.name.toLocaleLowerCase().includes(query)) : entries;
+  if (!displayedEntries.length) { filesStatus.textContent = t('filesEmpty'); return; }
+  filesStatus.textContent = `${displayedEntries.length} ${currentLanguage === 'vi' ? 'mục' : displayedEntries.length === 1 ? 'item' : 'items'}`;
+  displayedEntries.forEach(entry => {
     const row = document.createElement('article'); row.className = `file-entry ${entry.type}`; row.setAttribute('role', 'listitem');
-    const icon = document.createElement('span'); icon.className = 'entry-icon'; icon.textContent = entry.type === 'folder' ? '▰' : '▱';
     const info = document.createElement('div'); info.className = 'entry-info';
+    const icon = document.createElement('span'); icon.className = 'entry-icon'; icon.textContent = entry.type === 'folder' ? '▰' : '▱';
     const name = document.createElement('button'); name.className = 'entry-name'; name.type = 'button'; name.textContent = entry.name; name.title = entry.name;
     if (entry.type === 'folder') name.addEventListener('click', () => loadFiles(joinPath(currentPath, entry.name)));
     else name.addEventListener('click', () => downloadFile(entry));
-    const details = document.createElement('div'); details.className = 'entry-details'; details.textContent = `${entry.type === 'folder' ? t('folder') : formatBytes(entry.bytes)} · ${formatDate(entry.modifiedAtUtc)}`;
-    info.append(name, details);
+    info.append(icon, name);
+    const modified = document.createElement('span'); modified.className = 'entry-meta'; modified.textContent = formatDate(entry.modifiedAtUtc);
+    const size = document.createElement('span'); size.className = 'entry-meta'; size.textContent = entry.type === 'folder' ? t('folder') : formatBytes(entry.bytes);
     const action = entry.type === 'folder'
       ? button('›', 'open-folder', () => loadFiles(joinPath(currentPath, entry.name)), entry.name)
       : button(t('download'), 'download', () => downloadFile(entry));
-    row.append(icon, info, action); filesList.append(row);
+    const actions = document.createElement('div'); actions.className = 'entry-actions'; actions.append(action);
+    row.append(info, modified, size, actions); filesList.append(row);
   });
+}
+
+function renderFolderTree() {
+  folderTree.replaceChildren();
+  if (!tokenInput.value.trim()) return;
+  folderTree.append(createTreeBranch('', t('home'), true));
+}
+
+function createTreeBranch(path, name, isRoot = false) {
+  const branch = document.createElement('div'); branch.className = 'tree-branch';
+  const row = document.createElement('div'); row.className = 'tree-row';
+  const children = treeCache.get(path);
+  const expanded = expandedTreePaths.has(path);
+  const expander = document.createElement('button'); expander.type = 'button'; expander.className = 'tree-expander';
+  expander.textContent = expanded ? '⌄' : '›'; expander.setAttribute('aria-label', `${t('toggleFolder')}: ${name}`);
+  expander.addEventListener('click', () => toggleTreePath(path));
+  const item = document.createElement('button'); item.type = 'button'; item.className = `tree-item${path === currentPath ? ' active' : ''}`; item.setAttribute('aria-label', `${t('folder')}: ${name}`);
+  const icon = document.createElement('span'); icon.className = 'tree-icon'; icon.textContent = isRoot ? '⌂' : '▰';
+  const label = document.createElement('span'); label.textContent = name; label.title = name; item.append(icon, label);
+  item.addEventListener('click', () => loadFiles(path));
+  row.append(expander, item); branch.append(row);
+  if (expanded) {
+    const childContainer = document.createElement('div'); childContainer.className = 'tree-children';
+    if (children) children.forEach(entry => childContainer.append(createTreeBranch(joinPath(path, entry.name), entry.name)));
+    branch.append(childContainer);
+  }
+  return branch;
+}
+
+async function toggleTreePath(path) {
+  if (expandedTreePaths.has(path)) { expandedTreePaths.delete(path); renderFolderTree(); return; }
+  expandedTreePaths.add(path);
+  if (!treeCache.has(path)) {
+    try {
+      const response = await fetch(`/api/files?path=${encodeURIComponent(path)}`, { headers: { 'X-Upload-Token': tokenInput.value.trim() } });
+      const data = await readResponse(response);
+      if (!response.ok) throw new Error(data.error || t('errors.connection'));
+      treeCache.set(path, (data.entries || []).filter(entry => entry.type === 'folder'));
+    } catch { expandedTreePaths.delete(path); }
+  }
+  renderFolderTree();
+}
+
+function expandPathAncestors(path) {
+  expandedTreePaths.add('');
+  const parts = path ? path.split('/') : [];
+  parts.forEach((_, index) => expandedTreePaths.add(parts.slice(0, index + 1).join('/')));
+}
+
+function setSidebarOpen(isOpen) {
+  sidebar.classList.toggle('is-open', isOpen); sidebarToggle.setAttribute('aria-expanded', String(isOpen)); sidebarBackdrop.hidden = !isOpen;
+}
+
+function closeSidebarOnNavigation() {
+  if (window.matchMedia('(max-width: 900px)').matches) setSidebarOpen(false);
 }
 
 function renderBreadcrumbs() {
@@ -298,7 +373,7 @@ async function createFolder(event) {
     const response = await fetch('/api/folders', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Upload-Token': token }, body: JSON.stringify({ parentPath: currentPath, name }) });
     const data = await readResponse(response);
     if (!response.ok) throw new Error(response.status === 401 ? t('errors.unauthorized') : data.error || t('errors.invalidFolder'));
-    folderDialog.close(); setStatus(t('folderCreated'), 'success'); loadFiles();
+    folderDialog.close(); treeCache.delete(currentPath); setStatus(t('folderCreated'), 'success'); loadFiles();
   } catch (error) { folderDialogStatus.textContent = localizeError(error.message || t('errors.invalidFolder')); }
   finally { submit.disabled = false; }
 }
@@ -312,12 +387,12 @@ function downloadFile(entry) {
 
 function logout() {
   uploads.filter(upload => !['completed', 'stopped', 'error'].includes(upload.state)).forEach(upload => upload.stop());
-  localStorage.removeItem('upload-token'); tokenInput.value = ''; entries = []; listedToken = ''; currentPath = ''; updateAuthControls(); setStatus(t('loggedOut'), 'success'); tokenInput.focus();
+  localStorage.removeItem('upload-token'); tokenInput.value = ''; entries = []; listedToken = ''; currentPath = ''; treeCache.clear(); expandedTreePaths.clear(); expandedTreePaths.add(''); updateAuthControls(); setStatus(t('loggedOut'), 'success'); tokenInput.focus();
 }
 
 function updateAuthControls() {
-  const token = tokenInput.value.trim(); logoutButton.hidden = !token; filesPanel.hidden = !token;
-  if (!token) { filesList.replaceChildren(); filesStatus.textContent = ''; breadcrumbs.replaceChildren(); return; }
+  const token = tokenInput.value.trim(); logoutButton.hidden = !token; filesPanel.hidden = !token; authPanel.hidden = !!token;
+  if (!token) { filesList.replaceChildren(); filesStatus.textContent = ''; breadcrumbs.replaceChildren(); folderTree.replaceChildren(); return; }
   if (listedToken !== token) { entries = []; filesList.replaceChildren(); filesStatus.textContent = t('refreshFilesHint'); }
 }
 
@@ -333,7 +408,7 @@ function applyLanguage() {
   document.querySelectorAll('[data-i18n-title]').forEach(element => { element.title = t(element.dataset.i18nTitle); });
   document.querySelectorAll('[data-i18n-aria-label]').forEach(element => { element.setAttribute('aria-label', t(element.dataset.i18nAriaLabel)); });
   languageSelect.setAttribute('aria-label', t('languageLabel')); filesPanel.setAttribute('aria-label', t('filesTitle')); uploadPanel.setAttribute('aria-label', t('uploadListTitle'));
-  uploads.forEach(upload => upload.render()); renderFileManager(); updateUploadCount();
+  uploads.forEach(upload => upload.render()); renderFileManager(); renderFolderTree(); updateUploadCount();
 }
 
 function button(label, className, onClick, title = '') { const element = document.createElement('button'); element.type = 'button'; element.className = `button ${className}`; element.textContent = label; if (title) element.title = title; element.addEventListener('click', onClick); return element; }
