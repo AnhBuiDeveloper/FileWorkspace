@@ -63,6 +63,22 @@ public sealed class FileManagerServiceTests
         Assert.Equal("report (1).txt", secondResult.FileName);
     }
 
+    [Fact]
+    public async Task DeleteFile_removes_only_completed_file_inside_workspace()
+    {
+        using var workspace = new TemporaryWorkspace();
+        var service = new FileManagerService(workspace.Environment);
+        var bytes = new byte[] { 1 };
+        var upload = await service.StartUploadAsync("remove.txt", "", bytes.Length, CancellationToken.None);
+        await service.WriteChunkAsync(upload.UploadId, 0, bytes.Length, new MemoryStream(bytes), CancellationToken.None);
+
+        service.DeleteFile("remove.txt");
+
+        Assert.Empty(service.List("").Entries);
+        var exception = Assert.Throws<FileManagerException>(() => service.GetDownload("remove.txt"));
+        Assert.Equal(StatusCodes.Status404NotFound, exception.StatusCode);
+    }
+
     [Theory]
     [InlineData("..")]
     [InlineData("../outside")]

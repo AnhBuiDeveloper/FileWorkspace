@@ -57,6 +57,17 @@ public static class FileWorkspaceEndpointExtensions
             catch (FileManagerException exception) { return Error(exception); }
         });
 
+        endpoints.MapDelete("/api/files", (HttpContext context, FileManagerService files, UploadTokenValidator token) =>
+        {
+            if (!IsAuthorized(context, token)) return Results.Unauthorized();
+            try
+            {
+                files.DeleteFile(context.Request.Query["path"].ToString());
+                return Results.NoContent();
+            }
+            catch (FileManagerException exception) { return Error(exception); }
+        });
+
         endpoints.MapPost("/api/folders", async (HttpContext context, FileManagerService files, UploadTokenValidator token) =>
         {
             if (!IsAuthorized(context, token)) return Results.Unauthorized();

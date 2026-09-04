@@ -139,6 +139,15 @@ public sealed class FileManagerService
         return new DownloadDescriptor(filePath, Path.GetFileName(filePath));
     }
 
+    public void DeleteFile(string encodedPath)
+    {
+        var relativePath = NormalizeRelativePath(encodedPath);
+        if (string.IsNullOrEmpty(relativePath) || IsTemporaryUpload(Path.GetFileName(relativePath))) throw NotFound("File không tồn tại.");
+        var filePath = ResolvePath(relativePath);
+        if (filePath is null || !File.Exists(filePath)) throw NotFound("File không tồn tại.");
+        File.Delete(filePath);
+    }
+
     private UploadSession GetSession(string uploadId) => _sessions.TryGetValue(uploadId, out var session) ? session : throw NotFound("Phiên upload không tồn tại hoặc đã kết thúc.");
 
     private string ReserveUniqueFileName(string directory, string requestedName, out string reservationKey)

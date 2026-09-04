@@ -43,6 +43,18 @@ test('creates a folder and uploads a file into it', async ({ page }) => {
   await expect(page.getByRole('button', { name: fileName, exact: true })).toBeVisible();
   await expect(page.locator('.new-badge')).toHaveText('New');
   await expect(page.locator('#upload-panel')).toBeHidden();
+
+  page.once('dialog', dialog => dialog.dismiss());
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect(page.getByRole('button', { name: fileName, exact: true })).toBeVisible();
+
+  page.once('dialog', async dialog => {
+    expect(dialog.type()).toBe('confirm');
+    expect(dialog.message()).toContain(fileName);
+    await dialog.accept();
+  });
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+  await expect(page.getByRole('button', { name: fileName, exact: true })).toBeHidden();
 });
 
 test('renders the Explorer tree and keeps the compact layout within the viewport', async ({ page }) => {
