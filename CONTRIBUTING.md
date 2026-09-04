@@ -4,6 +4,7 @@
 
 Contributions to this self-hosted file manager are welcome. Before opening a pull request:
 
+- Human and AI contributors must follow [AGENTS.md](AGENTS.md). It defines required pre-read, architecture/security constraints, validation loop, stop points.
 - Do not commit tokens, `.env` files, real uploads, personal data, or credentials.
 - Do not add a dependency whose license conflicts with [LICENSE](LICENSE).
 - Update documentation and tests whenever behavior changes.
@@ -34,6 +35,7 @@ Do not sign off on behalf of anyone else.
 
 Hoan nghênh đóng góp cho file manager tự host này. Trước khi mở pull request:
 
+- Contributor là người hoặc AI đều phải tuân thủ [AGENTS.md](AGENTS.md). Tài liệu này quy định tài liệu phải đọc trước, boundary kiến trúc/bảo mật, vòng lặp kiểm tra, điểm phải dừng xin ý kiến.
 - Không commit token, file `.env`, file thật trong workspace, dữ liệu cá nhân hoặc credential.
 - Không thêm dependency có license xung đột với [LICENSE](LICENSE).
 - Cập nhật tài liệu và test khi thay đổi hành vi.

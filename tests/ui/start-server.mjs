@@ -13,7 +13,7 @@ await cp(join(repositoryRoot, 'wwwroot'), join(contentRoot, 'wwwroot'), { recurs
 
 const server = spawn(
   'dotnet',
-  ['run', '--project', 'FileWorkspace.csproj', '--no-launch-profile', '--', '--urls', 'http://127.0.0.1:5090', '--contentRoot', contentRoot],
+  ['run', '--project', 'FileWorkspace.csproj', '--configuration', 'Release', '--no-launch-profile', '--', '--urls', 'http://127.0.0.1:5090', '--contentRoot', contentRoot],
   { cwd: repositoryRoot, env: process.env, stdio: 'inherit' }
 );
 

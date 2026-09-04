@@ -83,6 +83,15 @@ Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'FileWorkspace.Tests\
 Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'FileWorkspace.Tests\Endpoints\FileManagerApiTests.cs')) 'HTTP endpoints require API integration tests.'
 
 # Durable documentation is part of the quality contract.
+foreach ($governanceFile in @('AGENTS.md', 'CONTRIBUTING.md', '.github\copilot-instructions.md', '.github\PULL_REQUEST_TEMPLATE.md', 'CODEOWNERS')) {
+    Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile $governanceFile)) "Missing contributor governance file: $governanceFile."
+}
+Test-Matches 'AGENTS.md' 'PROJECT-MEMORY\.md' 'AGENTS.md must require reading PROJECT-MEMORY.md.'
+Test-Matches 'AGENTS.md' 'UI-STANDARDS\.md' 'AGENTS.md must require UI-STANDARDS.md for browser work.'
+Test-Matches 'AGENTS.md' 'SOLID.{0,8}KISS.{0,8}DRY.{0,8}YAGNI' 'AGENTS.md must require engineering principles.'
+Test-Matches 'AGENTS.md' 'dotnet test' 'AGENTS.md must require .NET tests.'
+Test-Matches 'AGENTS.md' 'npm run test:ui' 'AGENTS.md must require Playwright tests.'
+
 foreach ($principle in @('SOLID', 'KISS', 'DRY', 'YAGNI')) {
     Test-Matches 'PROJECT-MEMORY.md' $principle "PROJECT-MEMORY.md must document $principle."
 }
@@ -91,7 +100,7 @@ foreach ($width in @('320 px', '375 px', '430 px', '768 px', '1024 px', '1440 px
 }
 
 if ($failures.Count -gt 0) {
-    Write-Error ('Architecture quality check failed:' + [Environment]::NewLine + ($failures | ForEach-Object { \"- $_\" } | Out-String))
+    Write-Error ('Architecture quality check failed:' + [Environment]::NewLine + ($failures | ForEach-Object { "- $_" } | Out-String))
     exit 1
 }
 
