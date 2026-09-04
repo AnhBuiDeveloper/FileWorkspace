@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="FileWorkspace.Tests/**/*.cs;**/bin/**/*.cs;**/obj/**/*.cs" />
+    <Content Remove="FileWorkspace.Tests/**;TestResults/**;test-results/**;playwright-report/**;node_modules/**" />
   </ItemGroup>
 </Project>
