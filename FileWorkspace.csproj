@@ -5,7 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="FileWorkspace.Tests/**/*.cs;**/bin/**/*.cs;**/obj/**/*.cs" />
-    <Content Remove="FileWorkspace.Tests/**;TestResults/**;test-results/**;playwright-report/**;node_modules/**" />
+    <Compile Remove="FileUpload.Tests/**/*.cs;FileWorkspace.Tests/**/*.cs;**/bin/**/*.cs;**/obj/**/*.cs" />
+    <Content Remove="FileUpload.Tests/**;FileWorkspace.Tests/**;TestResults/**;test-results/**;playwright-report/**;node_modules/**;package*.json" />
+    <None Remove="FileUpload.Tests/**;FileWorkspace.Tests/**;TestResults/**;test-results/**;playwright-report/**;node_modules/**;**/bin/**;**/obj/**;package*.json" />
   </ItemGroup>
 </Project>
