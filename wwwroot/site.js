@@ -5,7 +5,7 @@ const SPEED_MIN_SAMPLE_MS = 250;
 
 const copy = {
   vi: {
-    documentTitle: 'File Workspace', languageLabel: 'Ngôn ngữ', title: 'Không gian file riêng', hint: 'Nhập upload token trong thanh bên để truy cập file của bạn.', searchPlaceholder: 'Tìm trong folder hiện tại', myFiles: 'File của tôi', folders: 'Folders', privateWorkspace: 'Không gian file riêng tư', nameColumn: 'Tên', modifiedColumn: 'Chỉnh sửa', sizeColumn: 'Dung lượng', newLabel: 'Mới', openNavigation: 'Mở điều hướng', toggleFolder: 'Mở hoặc đóng folder',
+    documentTitle: 'File Workspace', languageLabel: 'Ngôn ngữ', title: 'Không gian file riêng', hint: 'Nhập upload token trong thanh bên để truy cập file của bạn.', searchPlaceholder: 'Tìm trong folder hiện tại', myFiles: 'File của tôi', folders: 'Folders', privateWorkspace: 'Không gian file riêng tư', nameColumn: 'Tên', modifiedColumn: 'Chỉnh sửa', sizeColumn: 'Dung lượng', newLabel: 'Mới', openNavigation: 'Mở điều hướng', closeNavigation: 'Đóng điều hướng', toggleFolder: 'Mở hoặc đóng folder',
     tokenLabel: 'Upload token', tokenPlaceholder: 'Nhập upload token', logout: 'Đăng xuất', loggedOut: 'Đã đăng xuất và dừng các upload đang hoạt động.', tokenRequired: 'Nhập upload token trước.',
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'File của bạn', newFolder: 'Tạo folder', uploadFiles: 'Upload file', uploadFolder: 'Upload folder', refreshFiles: 'Làm mới',
     dropZoneText: 'Kéo thả file vào đây để upload vào folder hiện tại', dropZoneLabel: 'Chọn file để upload vào folder hiện tại', home: 'Upload', filesLoading: 'Đang tải nội dung…', filesEmpty: 'Folder này đang trống.', refreshFilesHint: 'Nhấn Làm mới để xem file với token hiện tại.',
@@ -16,7 +16,7 @@ const copy = {
     errors: { createSession: 'Không thể tạo phiên upload.', invalidResponse: 'Phản hồi server không hợp lệ.', connection: 'Không kết nối được server.', uploadFailed: 'Upload thất bại.', unauthorized: 'Upload token không hợp lệ hoặc đã hết quyền truy cập.', invalidFileName: 'Tên file không hợp lệ.', invalidFileSize: 'Dung lượng file không hợp lệ.', invalidFolder: 'Tên hoặc đường dẫn thư mục không hợp lệ.', folderExists: 'Tên thư mục đã tồn tại.', folderNotFound: 'Thư mục không tồn tại.', fileNotFound: 'File không tồn tại.', archiveEmpty: 'Cần chọn ít nhất một file hoặc folder.', archiveNotFound: 'File hoặc folder không tồn tại.', folderHasIncompleteUpload: 'Không thể xóa folder đang có upload chưa hoàn tất.', sessionNotFound: 'Phiên upload không tồn tại hoặc đã kết thúc.', invalidChunk: 'Chunk không hợp lệ.', invalidChunkSize: 'Kích thước chunk không hợp lệ.', incompleteChunk: 'Dữ liệu chunk chưa hoàn chỉnh.', downloadFailed: 'Không thể tải file.' }
   },
   en: {
-    documentTitle: 'File Workspace', languageLabel: 'Language', title: 'Private file workspace', hint: 'Enter the upload token in the sidebar to access your files.', searchPlaceholder: 'Search current folder', myFiles: 'My files', folders: 'Folders', privateWorkspace: 'Private file workspace', nameColumn: 'Name', modifiedColumn: 'Modified', sizeColumn: 'Size', newLabel: 'New', openNavigation: 'Open navigation', toggleFolder: 'Toggle folder',
+    documentTitle: 'File Workspace', languageLabel: 'Language', title: 'Private file workspace', hint: 'Enter the upload token in the sidebar to access your files.', searchPlaceholder: 'Search current folder', myFiles: 'My files', folders: 'Folders', privateWorkspace: 'Private file workspace', nameColumn: 'Name', modifiedColumn: 'Modified', sizeColumn: 'Size', newLabel: 'New', openNavigation: 'Open navigation', closeNavigation: 'Close navigation', toggleFolder: 'Toggle folder',
     tokenLabel: 'Upload token', tokenPlaceholder: 'Enter upload token', logout: 'Log out', loggedOut: 'You have been logged out and active uploads have been stopped.', tokenRequired: 'Enter the upload token first.',
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'Your files', newFolder: 'New folder', uploadFiles: 'Upload files', uploadFolder: 'Upload folder', refreshFiles: 'Refresh',
     dropZoneText: 'Drop files here to upload them to the current folder', dropZoneLabel: 'Choose files to upload to the current folder', home: 'Upload', filesLoading: 'Loading contents…', filesEmpty: 'This folder is empty.', refreshFilesHint: 'Select Refresh to view files with the current token.',
@@ -69,6 +69,7 @@ const selectAllCheckbox = document.querySelector('#select-all');
 const sidebar = document.querySelector('#sidebar');
 const sidebarToggle = document.querySelector('#sidebar-toggle');
 const sidebarBackdrop = document.querySelector('#sidebar-backdrop');
+const workspaceShell = document.querySelector('.workspace-shell');
 
 const uploads = [];
 let activeTransfers = 0;
@@ -122,8 +123,12 @@ selectAllCheckbox.addEventListener('change', () => {
 });
 myFilesButton.addEventListener('click', () => loadFiles(''));
 workspaceSearch.addEventListener('input', renderFileManager);
-sidebarToggle.addEventListener('click', () => setSidebarOpen(!sidebar.classList.contains('is-open')));
+sidebarToggle.addEventListener('click', () => {
+  if (isMobileSidebar()) setSidebarOpen(!sidebar.classList.contains('is-open'));
+  else setSidebarCollapsed(!workspaceShell.classList.contains('sidebar-collapsed'));
+});
 sidebarBackdrop.addEventListener('click', () => setSidebarOpen(false));
+window.addEventListener('resize', updateSidebarToggle);
 closeFolderDialogButton.addEventListener('click', () => folderDialog.close());
 cancelFolderDialogButton.addEventListener('click', () => folderDialog.close());
 folderForm.addEventListener('submit', createFolder);
@@ -436,7 +441,16 @@ function expandPathAncestors(path) {
 }
 
 function setSidebarOpen(isOpen) {
-  sidebar.classList.toggle('is-open', isOpen); sidebarToggle.setAttribute('aria-expanded', String(isOpen)); sidebarBackdrop.hidden = !isOpen;
+  sidebar.classList.toggle('is-open', isOpen); sidebarBackdrop.hidden = !isOpen; updateSidebarToggle();
+}
+
+function setSidebarCollapsed(isCollapsed) { workspaceShell.classList.toggle('sidebar-collapsed', isCollapsed); updateSidebarToggle(); }
+
+function isMobileSidebar() { return window.matchMedia('(max-width: 900px)').matches; }
+
+function updateSidebarToggle() {
+  const isOpen = isMobileSidebar() ? sidebar.classList.contains('is-open') : !workspaceShell.classList.contains('sidebar-collapsed');
+  sidebarToggle.setAttribute('aria-expanded', String(isOpen)); sidebarToggle.setAttribute('aria-label', t(isOpen ? 'closeNavigation' : 'openNavigation'));
 }
 
 function closeSidebarOnNavigation() {
@@ -565,7 +579,7 @@ function applyLanguage() {
   document.querySelectorAll('[data-i18n-title]').forEach(element => { element.title = t(element.dataset.i18nTitle); });
   document.querySelectorAll('[data-i18n-aria-label]').forEach(element => { element.setAttribute('aria-label', t(element.dataset.i18nAriaLabel)); });
   updateDeleteDialogCopy();
-  languageSelect.setAttribute('aria-label', t('languageLabel')); filesPanel.setAttribute('aria-label', t('filesTitle')); uploadPanel.setAttribute('aria-label', t('uploadListTitle'));
+  languageSelect.setAttribute('aria-label', t('languageLabel')); filesPanel.setAttribute('aria-label', t('filesTitle')); uploadPanel.setAttribute('aria-label', t('uploadListTitle')); updateSidebarToggle();
   uploads.forEach(upload => upload.render()); renderFileManager(); renderFolderTree(); updateUploadCount(); updateSelectionControls();
 }
 
