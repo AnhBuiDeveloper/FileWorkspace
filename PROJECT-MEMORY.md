@@ -19,7 +19,7 @@ This document is the durable engineering context for File Workspace, a self-host
 | Configuration/ | Local development environment-file loading. |
 | Endpoints/ | HTTP routes, authentication boundary, request parsing, and HTTP responses. |
 | Services/UploadTokenValidator | Constant-time upload-token comparison. |
-| Services/FileManagerService | Upload sessions/chunks, safe paths, folders, file listing, direct downloads, streamed ZIP archive sources, permanent file deletion, and disk persistence. |
+| Services/FileManagerService | Upload sessions/chunks, safe paths, folders, file listing, direct downloads, streamed ZIP archive sources, permanent selected file/folder deletion, and disk persistence. |
 | Models/ | API request/response contracts and upload protocol constants. |
 | wwwroot/ | Browser-only presentation and interaction. |
 
@@ -37,7 +37,7 @@ This document is the durable engineering context for File Workspace, a self-host
 
 - The file-manager service, not endpoints or browser code, owns safe path resolution and all disk operations.
 - ZIP downloads must be generated as streamed responses; never persist temporary archives in `Upload/`. Archive sources must be existing validated paths, preserve the selected folder structure (including empty folders), omit incomplete `.uploading` files, and avoid duplicate entries when selections overlap.
-- File deletion is permanent and file-only in the current product. Keep an explicit client confirmation in an accessible, localized application modal before the protected delete request; never use browser-native `alert()`, `confirm()`, or `prompt()` dialogs. Do not imply a recycle bin, restore, or audit capability.
+- Selected-file/folder deletion is permanent in the current product. Keep an explicit client confirmation in an accessible, localized application modal before the protected delete request; selected folders delete recursively. Validate every selection before mutation, deduplicate overlapping parent/child selections, and reject a folder containing an incomplete upload. Never use browser-native `alert()`, `confirm()`, or `prompt()` dialogs. Do not imply a recycle bin, restore, or audit capability.
 
 ### Automated quality guardrails
 
@@ -62,7 +62,7 @@ This document is the durable engineering context for File Workspace, a self-host
 | Configuration/ | Nạp file môi trường local. |
 | Endpoints/ | HTTP route, ranh giới xác thực, parse request và HTTP response. |
 | Services/UploadTokenValidator | So sánh upload token theo constant-time. |
-| Services/FileManagerService | Upload session/chunk, path an toàn, folder, list file, tải trực tiếp, nguồn ZIP stream, xóa file vĩnh viễn và ghi ổ đĩa. |
+| Services/FileManagerService | Upload session/chunk, path an toàn, folder, list file, tải trực tiếp, nguồn ZIP stream, xóa vĩnh viễn file/folder đã chọn và ghi ổ đĩa. |
 | Models/ | Contract request/response API và hằng số upload protocol. |
 | wwwroot/ | Presentation và interaction chỉ chạy trên browser. |
 
@@ -80,7 +80,7 @@ This document is the durable engineering context for File Workspace, a self-host
 
 - File-manager service, không phải endpoint hoặc browser code, sở hữu việc resolve path an toàn và mọi thao tác ổ đĩa.
 - Tải ZIP phải tạo bằng response stream; không lưu archive tạm trong `Upload/`. Nguồn archive phải là path tồn tại đã validate, giữ cấu trúc folder được chọn (kể cả folder rỗng), bỏ file `.uploading` chưa hoàn tất và tránh entry trùng khi các mục chọn chồng lấn.
-- Xóa file hiện là vĩnh viễn và chỉ áp dụng cho file. Giữ xác nhận rõ ràng trong modal do ứng dụng sở hữu, có accessibility và bản địa hóa trước protected delete request; không dùng browser-native `alert()`, `confirm()` hoặc `prompt()`. Không ngụ ý có thùng rác, khôi phục hoặc audit.
+- Xóa file/folder đã chọn hiện là vĩnh viễn. Giữ xác nhận rõ ràng trong modal do ứng dụng sở hữu, có accessibility và bản địa hóa trước protected delete request; folder được chọn bị xóa đệ quy. Validate toàn bộ selection trước khi mutate, loại selection cha/con chồng lấn và từ chối folder có upload chưa hoàn tất. Không dùng browser-native `alert()`, `confirm()` hoặc `prompt()`. Không ngụ ý có thùng rác, khôi phục hoặc audit.
 
 ### Guardrail chất lượng tự động
 

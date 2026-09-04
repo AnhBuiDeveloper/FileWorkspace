@@ -9,6 +9,7 @@ public sealed record UploadChunkResponse(long UploadedBytes, bool Completed, str
 public sealed record DownloadDescriptor(string AbsolutePath, string FileName);
 public sealed record ArchiveSource(string AbsolutePath, string EntryName, bool IsDirectory);
 public sealed record ArchiveDownload(IReadOnlyList<ArchiveSource> Sources);
+public sealed record DeleteEntriesRequest(IReadOnlyList<string> Paths);
 
 public static class UploadProtocol
 {

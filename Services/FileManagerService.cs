@@ -185,6 +185,16 @@ public sealed class FileManagerService
         File.Delete(filePath);
     }
 
+    public void DeleteEntries(IEnumerable<string> encodedPaths)
+    {
+        var targets = GetDeletionTargets(encodedPaths);
+        foreach (var target in targets.OrderByDescending(target => target.AbsolutePath.Length))
+        {
+            if (target.IsDirectory) Directory.Delete(target.AbsolutePath, recursive: true);
+            else File.Delete(target.AbsolutePath);
+        }
+    }
+
     private UploadSession GetSession(string uploadId) => _sessions.TryGetValue(uploadId, out var session) ? session : throw NotFound("Phiên upload không tồn tại hoặc đã kết thúc.");
 
     private string ReserveUniqueFileName(string directory, string requestedName, out string reservationKey)
@@ -217,6 +227,38 @@ public sealed class FileManagerService
         var entryName = Path.GetRelativePath(_rootPath, absolutePath).Replace(Path.DirectorySeparatorChar, '/');
         if (isDirectory) entryName += "/";
         if (entryNames.Add(entryName)) sources.Add(new ArchiveSource(absolutePath, entryName, isDirectory));
+    }
+
+    private IReadOnlyList<DeletionTarget> GetDeletionTargets(IEnumerable<string> encodedPaths)
+    {
+        var targets = new List<DeletionTarget>();
+        var relativePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var encodedPath in encodedPaths.Where(path => !string.IsNullOrWhiteSpace(path)))
+        {
+            var relativePath = NormalizeRelativePath(encodedPath);
+            if (string.IsNullOrEmpty(relativePath) || IsTemporaryUpload(Path.GetFileName(relativePath))) throw NotFound("File hoặc folder không tồn tại.");
+            if (!relativePaths.Add(relativePath)) continue;
+
+            var absolutePath = ResolvePath(relativePath);
+            if (absolutePath is null) throw BadRequest("Đường dẫn file hoặc folder không hợp lệ.");
+            if (File.Exists(absolutePath)) targets.Add(new DeletionTarget(absolutePath, false));
+            else if (Directory.Exists(absolutePath))
+            {
+                if (Directory.EnumerateFiles(absolutePath, "*", SearchOption.AllDirectories).Any(path => IsTemporaryUpload(Path.GetFileName(path))))
+                    throw Conflict("Không thể xóa folder đang có upload chưa hoàn tất.");
+                targets.Add(new DeletionTarget(absolutePath, true));
+            }
+            else throw NotFound("File hoặc folder không tồn tại.");
+        }
+
+        if (targets.Count == 0) throw BadRequest("Cần chọn ít nhất một file hoặc folder.");
+        return targets.Where(target => !targets.Any(parent => parent.IsDirectory && parent.AbsolutePath != target.AbsolutePath && IsPathInside(target.AbsolutePath, parent.AbsolutePath))).ToArray();
+    }
+
+    private static bool IsPathInside(string path, string directory)
+    {
+        var directoryWithSeparator = directory.EndsWith(Path.DirectorySeparatorChar) ? directory : directory + Path.DirectorySeparatorChar;
+        return path.StartsWith(directoryWithSeparator, StringComparison.OrdinalIgnoreCase);
     }
 
     private string? ResolvePath(string relativePath)
@@ -258,6 +300,7 @@ public sealed class FileManagerService
     private static string JoinPath(string left, string right) => string.IsNullOrEmpty(left) ? right : $"{left}/{right}";
     private static FileManagerException BadRequest(string message) => new(message, StatusCodes.Status400BadRequest);
     private static FileManagerException NotFound(string message) => new(message, StatusCodes.Status404NotFound);
+    private static FileManagerException Conflict(string message) => new(message, StatusCodes.Status409Conflict);
 
     private static async Task<long> CopyExactAsync(Stream source, Stream destination, long expectedLength, CancellationToken cancellationToken)
     {
@@ -291,4 +334,6 @@ public sealed class FileManagerService
         public SemaphoreSlim Gate { get; } = new(1, 1);
         public long GetChunkLength(int chunkIndex) => Math.Min(UploadProtocol.ChunkSize, TotalBytes - (long)chunkIndex * UploadProtocol.ChunkSize);
     }
+
+    private sealed record DeletionTarget(string AbsolutePath, bool IsDirectory);
 }
