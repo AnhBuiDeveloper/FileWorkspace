@@ -190,6 +190,8 @@ class UploadTask {
     this.speedSamples = [];
     this.error = '';
     this.element = null;
+    this.renderedState = null;
+    this.renderedLanguage = null;
   }
   get totalChunks() { return Math.ceil(this.file.size / CHUNK_SIZE); }
 
@@ -287,20 +289,32 @@ class UploadTask {
   }
 
   render(displayedBytes = this.uploadedBytes) {
-    if (!this.element) { this.element = document.createElement('article'); this.element.className = 'upload-item'; uploadList.append(this.element); }
+    this.ensureElement();
     const percent = this.file.size ? Math.min(100, Math.round((displayedBytes / this.file.size) * 100)) : 100;
-    this.element.className = `upload-item ${this.state}`; this.element.replaceChildren();
+    this.element.className = `upload-item ${this.state}`;
+    this.stateElement.textContent = this.state === 'error' ? this.error : t(`states.${this.state}`);
+    this.destinationElement.textContent = `/${this.targetPath || t('home')}`;
+    this.progressElement.setAttribute('aria-valuenow', String(percent)); this.progressFill.style.width = `${percent}%`;
+    this.statsElement.textContent = `${formatBytes(displayedBytes)} / ${formatBytes(this.file.size)} · ${this.state === 'uploading' ? `${formatBytes(this.speed)}/s` : `${percent}%`}`;
+    if (this.renderedState !== this.state || this.renderedLanguage !== currentLanguage) {
+      this.controlsElement.replaceChildren();
+      if (['preparing', 'queued', 'uploading'].includes(this.state)) this.controlsElement.append(button(t('buttons.pause'), 'secondary', () => this.pause()), button(t('buttons.stop'), 'danger', () => this.stop()));
+      else if (this.state === 'paused') this.controlsElement.append(button(t('buttons.resume'), 'primary', () => this.resume()), button(t('buttons.stop'), 'danger', () => this.stop()));
+      else if (this.state === 'error') this.controlsElement.append(button(t('buttons.stop'), 'danger', () => this.stop()));
+      this.renderedState = this.state; this.renderedLanguage = currentLanguage;
+    }
+  }
+
+  ensureElement() {
+    if (this.element) return;
+    this.element = document.createElement('article'); this.element.className = 'upload-item';
     const header = document.createElement('div'); header.className = 'file-line';
     const name = document.createElement('strong'); name.textContent = this.file.name; name.title = this.file.name;
-    const state = document.createElement('span'); state.className = 'upload-state'; state.textContent = this.state === 'error' ? this.error : t(`states.${this.state}`); header.append(name, state);
-    const destination = document.createElement('div'); destination.className = 'upload-destination'; destination.textContent = `/${this.targetPath || t('home')}`;
-    const progress = document.createElement('div'); progress.className = 'bar'; progress.setAttribute('role', 'progressbar'); progress.setAttribute('aria-valuenow', String(percent)); progress.setAttribute('aria-valuemin', '0'); progress.setAttribute('aria-valuemax', '100'); const fill = document.createElement('div'); fill.style.width = `${percent}%`; progress.append(fill);
-    const footer = document.createElement('div'); footer.className = 'upload-footer'; const stats = document.createElement('span'); stats.className = 'stats'; stats.textContent = `${formatBytes(displayedBytes)} / ${formatBytes(this.file.size)} · ${this.state === 'uploading' ? `${formatBytes(this.speed)}/s` : `${percent}%`}`;
-    const controls = document.createElement('div'); controls.className = 'upload-controls';
-    if (['preparing', 'queued', 'uploading'].includes(this.state)) { controls.append(button(t('buttons.pause'), 'secondary', () => this.pause()), button(t('buttons.stop'), 'danger', () => this.stop())); }
-    else if (this.state === 'paused') { controls.append(button(t('buttons.resume'), 'primary', () => this.resume()), button(t('buttons.stop'), 'danger', () => this.stop())); }
-    else if (this.state === 'error') controls.append(button(t('buttons.stop'), 'danger', () => this.stop()));
-    footer.append(stats, controls); this.element.append(header, destination, progress, footer);
+    this.stateElement = document.createElement('span'); this.stateElement.className = 'upload-state'; header.append(name, this.stateElement);
+    this.destinationElement = document.createElement('div'); this.destinationElement.className = 'upload-destination';
+    this.progressElement = document.createElement('div'); this.progressElement.className = 'bar'; this.progressElement.setAttribute('role', 'progressbar'); this.progressElement.setAttribute('aria-valuemin', '0'); this.progressElement.setAttribute('aria-valuemax', '100'); this.progressFill = document.createElement('div'); this.progressElement.append(this.progressFill);
+    const footer = document.createElement('div'); footer.className = 'upload-footer'; this.statsElement = document.createElement('span'); this.statsElement.className = 'stats'; this.controlsElement = document.createElement('div'); this.controlsElement.className = 'upload-controls'; footer.append(this.statsElement, this.controlsElement);
+    this.element.append(header, this.destinationElement, this.progressElement, footer); uploadList.append(this.element);
   }
 }
 
