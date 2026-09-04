@@ -76,6 +76,17 @@ public sealed class FileManagerApiTests
         var downloadResponse = await client.PostAsync("/api/files/download", download);
         downloadResponse.EnsureSuccessStatusCode();
         Assert.Equal(bytes, await downloadResponse.Content.ReadAsByteArrayAsync());
+
+        var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, $"/api/files?path={folder}/proof.txt");
+        deleteRequest.Headers.Add("X-Upload-Token", TestWebApplicationFactory.AccessToken);
+        var deleteResponse = await client.SendAsync(deleteRequest);
+        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
+
+        var deletedListRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/files?path={folder}");
+        deletedListRequest.Headers.Add("X-Upload-Token", TestWebApplicationFactory.AccessToken);
+        var deletedListResponse = await client.SendAsync(deletedListRequest);
+        var deletedListing = await deletedListResponse.Content.ReadFromJsonAsync<FileListing>();
+        Assert.Empty(deletedListing!.Entries);
     }
 
     [Fact]
