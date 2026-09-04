@@ -19,19 +19,25 @@ This document is the durable engineering context for File Workspace, a self-host
 | Configuration/ | Local development environment-file loading. |
 | Endpoints/ | HTTP routes, authentication boundary, request parsing, and HTTP responses. |
 | Services/UploadTokenValidator | Constant-time upload-token comparison. |
-| Services/FileManagerService | Upload sessions/chunks, safe paths, folders, file listing, downloads, and disk persistence. |
+| Services/FileManagerService | Upload sessions/chunks, safe paths, folders, file listing, direct downloads, streamed ZIP archive sources, permanent file deletion, and disk persistence. |
 | Models/ | API request/response contracts and upload protocol constants. |
 | wwwroot/ | Browser-only presentation and interaction. |
 
 ### Rules for future changes
 
-1. Preserve token protection for every file, folder, upload, and download operation.
+1. Preserve token protection for every file, folder, upload, direct download, ZIP archive, and deletion operation.
 2. Treat every client-supplied path or filename as untrusted. Resolve paths only through the file manager service.
 3. Keep incomplete uploads hidden and never serve Upload/ as static files.
 4. Keep API changes backward-compatible unless a versioned breaking change is explicitly approved.
 5. Follow [UI-STANDARDS.md](UI-STANDARDS.md) for every browser-facing change.
 6. Update and run the relevant automated tests before committing. Maintain unit, API integration, and Playwright UI coverage for behavior changes; update docs when behavior or configuration changes.
 7. Describe the product accurately as a self-hosted file manager. Do not imply multi-user cloud-drive capabilities unless they are implemented and documented.
+
+### File-operation invariants
+
+- The file-manager service, not endpoints or browser code, owns safe path resolution and all disk operations.
+- ZIP downloads must be generated as streamed responses; never persist temporary archives in `Upload/`. Archive sources must be existing validated paths, preserve the selected folder structure (including empty folders), omit incomplete `.uploading` files, and avoid duplicate entries when selections overlap.
+- File deletion is permanent and file-only in the current product. Keep an explicit client confirmation before the protected delete request; do not imply a recycle bin, restore, or audit capability.
 
 ### Automated quality guardrails
 
@@ -56,19 +62,25 @@ This document is the durable engineering context for File Workspace, a self-host
 | Configuration/ | Nạp file môi trường local. |
 | Endpoints/ | HTTP route, ranh giới xác thực, parse request và HTTP response. |
 | Services/UploadTokenValidator | So sánh upload token theo constant-time. |
-| Services/FileManagerService | Upload session/chunk, path an toàn, folder, list file, download và ghi ổ đĩa. |
+| Services/FileManagerService | Upload session/chunk, path an toàn, folder, list file, tải trực tiếp, nguồn ZIP stream, xóa file vĩnh viễn và ghi ổ đĩa. |
 | Models/ | Contract request/response API và hằng số upload protocol. |
 | wwwroot/ | Presentation và interaction chỉ chạy trên browser. |
 
 ### Quy tắc cho thay đổi sau này
 
-1. Giữ token protection cho mọi thao tác file, folder, upload và download.
+1. Giữ token protection cho mọi thao tác file, folder, upload, tải trực tiếp, ZIP và xóa file.
 2. Coi mọi path/tên file từ client là không tin cậy. Chỉ resolve path qua file manager service.
 3. Giữ upload chưa hoàn tất ở trạng thái ẩn và không bao giờ serve Upload/ như static file.
 4. Giữ API backward-compatible trừ khi breaking change có version được phê duyệt rõ ràng.
 5. Tuân thủ [UI-STANDARDS.md](UI-STANDARDS.md) với mọi thay đổi browser-facing.
 6. Cập nhật và chạy automated test phù hợp trước khi commit. Duy trì coverage unit, API integration và Playwright UI cho thay đổi hành vi; cập nhật docs khi behavior hoặc config thay đổi.
 7. Mô tả chính xác sản phẩm là file manager tự host. Không ngụ ý tính năng cloud drive đa người dùng khi chưa được triển khai và ghi tài liệu.
+
+### Bất biến thao tác file
+
+- File-manager service, không phải endpoint hoặc browser code, sở hữu việc resolve path an toàn và mọi thao tác ổ đĩa.
+- Tải ZIP phải tạo bằng response stream; không lưu archive tạm trong `Upload/`. Nguồn archive phải là path tồn tại đã validate, giữ cấu trúc folder được chọn (kể cả folder rỗng), bỏ file `.uploading` chưa hoàn tất và tránh entry trùng khi các mục chọn chồng lấn.
+- Xóa file hiện là vĩnh viễn và chỉ áp dụng cho file. Giữ xác nhận rõ ràng ở client trước protected delete request; không ngụ ý có thùng rác, khôi phục hoặc audit.
 
 ### Guardrail chất lượng tự động
 

@@ -8,7 +8,7 @@
 
 File Workspace is a self-hosted, cloud-style file manager built with ASP.NET Core. It gives a trusted group a simple browser workspace to organize folders, upload large files, and download stored files from storage that you control. Uploads stream directly to disk rather than being buffered in memory, while the browser reports progress, transferred bytes, and current speed.
 
-It is deliberately small and self-contained. Today it is not a multi-tenant cloud drive: it has no user accounts, roles, sharing links, client sync, quotas, audit trail, remote object storage, or antivirus integration.
+It is deliberately small and self-contained. Today it is not a multi-tenant cloud drive: it has no user accounts, roles, sharing links, client sync, quotas, recycle bin, audit trail, remote object storage, or antivirus integration.
 
 ### Highlights
 
@@ -21,9 +21,15 @@ It is deliberately small and self-contained. Today it is not a multi-tenant clou
 - Provide English and Vietnamese interfaces; remember language and token locally until the user logs out.
 - Render responsively across desktop, tablet, and small touch screens.
 
+### File operations and archive downloads
+
+Use the checkbox beside a file or folder to build a selection, or use **Select all** for the items currently visible in the open folder. **Download ZIP** creates one streamed archive containing the selected files and folder hierarchy, including empty folders. It skips incomplete hidden `.uploading` files and avoids duplicating a file when both it and a parent folder are selected. Individual-file download remains available for a one-file download.
+
+Deleting a file always asks for confirmation. A confirmed deletion is permanent: there is no recycle bin, restore action, or audit trail. Folder deletion is intentionally not available in the current interface.
+
 ### Intended use and scope
 
-Use this project as a private file workspace for people who already trust one another: a home lab, small internal team, private server, or VPN-protected environment. A single shared token currently grants access to browse, create folders, upload, and download. Protect that token accordingly.
+Use this project as a private file workspace for people who already trust one another: a home lab, small internal team, private server, or VPN-protected environment. A single shared token currently grants access to browse, create folders, upload, download files or selected ZIP archives, and permanently delete files. Protect that token accordingly.
 
 For Internet-facing or multi-user use, add an authentication model, authorization, HTTPS, storage and file-size limits, rate limiting, malware scanning, auditing, backups, and a reverse-proxy/WAF posture appropriate to your environment.
 
@@ -53,7 +59,7 @@ Or run from source on any supported platform:
 dotnet run --urls http://127.0.0.1:5088
 ```
 
-Open `http://127.0.0.1:5088`, enter the upload token, and choose a file. The `.env` file is ignored by Git; never commit it.
+Open `http://127.0.0.1:5088`, enter the upload token, then browse, create folders, upload, download, or delete files. The `.env` file is ignored by Git; never commit it.
 
 ### Deployment
 
@@ -71,6 +77,8 @@ The [`deploy/`](deploy/README.md) directory contains an optional Linux systemd +
 
 - A visible `.uploading` file means that an upload is still being written. It is removed or renamed only when the request completes.
 - Pause/Resume retains progress while the browser page and server process remain available. Reloading the page or restarting the server starts a new upload session.
+- ZIP archives are generated as a streamed response and are not retained in `Upload/`. Keep sufficient storage for the source files and ensure the proxy does not buffer the archive response.
+- Deletion is irreversible. Back up data you need to retain; the application has no recycle bin or restore operation.
 - The browser remembers the upload token on the current device until **Log out**. Do not use this option on a shared browser profile; log out when finished.
 - Store uploaded files outside `wwwroot`; this project already does so.
 - Use HTTPS before exposing the service on the public Internet. The included Nginx example is HTTP-only and does not issue certificates.
@@ -87,13 +95,13 @@ The repository maintains three automated test layers:
 Run all checks locally:
 
 ~~~text
-dotnet test FileWorkspace.Tests/FileWorkspace.Tests.csproj --configuration Release
 npm ci
 npx playwright install chromium
-npm run test:ui
+npm run test:all
+dotnet format --verify-no-changes --no-restore
 ~~~
 
-The GitHub Actions workflow runs the .NET suite and Playwright suite on pushes and pull requests. Update the relevant tests whenever behavior changes.
+The GitHub Actions workflow runs architecture/format validation, the .NET suite, and the Playwright suite on pushes and pull requests. Update the relevant tests whenever behavior changes.
 
 ### Security, contributions, and licensing
 
@@ -109,7 +117,7 @@ This project is **source-available**, not Open Source under the OSI definition. 
 
 File Workspace là file manager tự host theo hướng cloud-style, xây dựng bằng ASP.NET Core. Ứng dụng cung cấp không gian web đơn giản để nhóm người dùng tin cậy tổ chức folder, upload file lớn và tải file từ nơi lưu trữ do chính bạn kiểm soát. Dữ liệu được stream thẳng xuống ổ đĩa, không giữ toàn bộ file trong RAM; trình duyệt hiển thị tiến độ, dung lượng đã gửi và tốc độ hiện tại.
 
-Project được chủ đích giữ gọn và độc lập. Hiện tại đây chưa phải cloud drive đa người dùng: chưa có tài khoản, role, link chia sẻ, client đồng bộ, quota, audit trail, object storage từ xa hoặc tích hợp antivirus.
+Project được chủ đích giữ gọn và độc lập. Hiện tại đây chưa phải cloud drive đa người dùng: chưa có tài khoản, role, link chia sẻ, client đồng bộ, quota, thùng rác, audit trail, object storage từ xa hoặc tích hợp antivirus.
 
 ### Điểm nổi bật
 
@@ -122,9 +130,15 @@ Project được chủ đích giữ gọn và độc lập. Hiện tại đây c
 - Giao diện Anh và Việt; trình duyệt ghi nhớ ngôn ngữ và token cục bộ đến khi người dùng đăng xuất.
 - Layout responsive cho desktop, tablet và màn hình cảm ứng nhỏ.
 
+### Thao tác file và tải archive
+
+Dùng checkbox cạnh mỗi file/folder để chọn nhiều mục, hoặc **Chọn tất cả** các mục đang hiển thị trong folder hiện tại. **Tải ZIP** tạo một archive stream gồm file và cấu trúc folder đã chọn, kể cả folder rỗng. Archive bỏ qua file `.uploading` đang ẩn và không lặp file khi đồng thời chọn file đó cùng folder cha. Tải trực tiếp từng file vẫn khả dụng khi chỉ cần một file.
+
+Xóa file luôn yêu cầu xác nhận. Sau khi xác nhận, file bị xóa vĩnh viễn: hiện chưa có thùng rác, khôi phục hay audit trail. UI hiện tại chủ đích chưa hỗ trợ xóa folder.
+
 ### Mục đích sử dụng và phạm vi
 
-Project phù hợp làm không gian file riêng cho những người đã tin cậy nhau: home lab, nhóm nội bộ nhỏ, private server hoặc môi trường có VPN. Một shared token hiện cấp quyền duyệt file, tạo folder, upload và download; cần bảo vệ token tương ứng.
+Project phù hợp làm không gian file riêng cho những người đã tin cậy nhau: home lab, nhóm nội bộ nhỏ, private server hoặc môi trường có VPN. Một shared token hiện cấp quyền duyệt file, tạo folder, upload, tải file hoặc ZIP các mục đã chọn và xóa file vĩnh viễn; cần bảo vệ token tương ứng.
 
 Nếu public Internet hoặc phục vụ nhiều người dùng, hãy bổ sung mô hình đăng nhập và phân quyền, HTTPS, giới hạn dung lượng lưu trữ/kích thước file, rate limit, quét mã độc, audit, backup và reverse proxy/WAF phù hợp với môi trường.
 
@@ -154,7 +168,7 @@ Hoặc chạy từ source trên mọi nền tảng được .NET hỗ trợ:
 dotnet run --urls http://127.0.0.1:5088
 ```
 
-Mở `http://127.0.0.1:5088`, nhập token upload và chọn file. `.env` đã được Git bỏ qua; tuyệt đối không commit file này.
+Mở `http://127.0.0.1:5088`, nhập token upload, sau đó duyệt, tạo folder, upload, tải hoặc xóa file. `.env` đã được Git bỏ qua; tuyệt đối không commit file này.
 
 ### Triển khai
 
@@ -172,6 +186,8 @@ Thư mục [`deploy/`](deploy/README.md) có cấu hình tham khảo Linux syste
 
 - File `.uploading` đang hiển thị nghĩa là upload vẫn được ghi. Nó chỉ được xóa hoặc đổi tên khi request hoàn tất.
 - Pause/Resume giữ tiến độ khi trang trình duyệt và process server vẫn đang hoạt động. Reload trang hoặc restart server sẽ tạo một phiên upload mới.
+- ZIP được tạo dưới dạng response stream và không được lưu lại trong `Upload/`. Cần giữ đủ dung lượng cho các file nguồn và bảo đảm proxy không buffer response archive.
+- Xóa file là không thể hoàn tác. Hãy backup dữ liệu cần giữ; ứng dụng chưa có thùng rác hoặc khôi phục.
 - Trình duyệt ghi nhớ upload token trên thiết bị hiện tại đến khi **Đăng xuất**. Không dùng trên browser profile dùng chung; hãy đăng xuất khi hoàn tất.
 - Lưu file upload ngoài `wwwroot`; project này đã áp dụng nguyên tắc đó.
 - Dùng HTTPS trước khi public service. Nginx sample chỉ chạy HTTP và không tự cấp certificate.
@@ -188,13 +204,13 @@ Repository duy trì ba tầng automated test:
 Chạy toàn bộ kiểm tra tại local:
 
 ~~~text
-dotnet test FileWorkspace.Tests/FileWorkspace.Tests.csproj --configuration Release
 npm ci
 npx playwright install chromium
-npm run test:ui
+npm run test:all
+dotnet format --verify-no-changes --no-restore
 ~~~
 
-GitHub Actions chạy .NET suite và Playwright suite cho push/pull request. Khi thay đổi behavior, phải cập nhật test liên quan.
+GitHub Actions chạy kiểm tra kiến trúc/format, .NET suite và Playwright suite cho push/pull request. Khi thay đổi behavior, phải cập nhật test liên quan.
 
 ### Bảo mật, đóng góp và license
 
