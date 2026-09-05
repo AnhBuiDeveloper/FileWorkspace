@@ -94,6 +94,32 @@ test('removes a stopped upload before a new upload starts', async ({ page }) => 
   await expect(upload).toHaveCount(0);
 });
 
+test('resumes a persisted upload when the same file is selected after reload', async ({ page }) => {
+  await signIn(page);
+  const fileName = `resume-${Date.now()}.bin`;
+  const buffer = Buffer.alloc(8 * 1024 * 1024 + 1, 'r');
+  const startResponse = await page.request.post('/api/uploads', {
+    headers: { 'X-Upload-Token': token, 'X-File-Name': encodeURIComponent(fileName), 'X-File-Size': String(buffer.length), 'X-Target-Folder': '' }
+  });
+  const start = await startResponse.json();
+  await page.request.put(`/api/uploads/${start.uploadId}/chunks/0`, {
+    headers: { 'X-Upload-Token': token, 'Content-Type': 'application/octet-stream' },
+    data: buffer.subarray(0, 8 * 1024 * 1024)
+  });
+  await page.evaluate(record => localStorage.setItem('file-workspace-upload-resume', JSON.stringify([record])), {
+    uploadId: start.uploadId, name: fileName, size: buffer.length, targetPath: ''
+  });
+
+  await page.reload();
+  const resumeRequest = page.waitForRequest(request => request.url().endsWith(`/api/uploads/${start.uploadId}/resume`));
+  await page.locator('#file-input').setInputFiles({ name: fileName, mimeType: 'application/octet-stream', buffer });
+  const request = await resumeRequest;
+
+  expect(request.headers()['x-upload-token']).toBe(token);
+  await expect(page.getByRole('button', { name: fileName, exact: true })).toBeVisible();
+  await expect(page.locator('#upload-panel')).toBeHidden();
+});
+
 test('selects multiple files and folders for a ZIP download', async ({ page }) => {
   await signIn(page);
   const folderName = 'zip-' + Date.now();

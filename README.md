@@ -17,6 +17,7 @@ It is deliberately small and self-contained. Today it is not a multi-tenant clou
 - Collapse or reopen the Explorer-style sidebar on desktop; use the same menu to open or close the mobile navigation overlay.
 - Upload multiple files through selection or drag and drop, including an entire local folder.
 - Upload to the currently open folder, with independent per-file progress, smoothed speed, pause, resume, and stop controls. Stop immediately removes its activity card and requests cleanup for its incomplete upload session.
+- Resume an incomplete upload after reload, browser close, server restart, or deployment: return to its original destination folder and select the same local file again within seven days.
 - Stream large files directly to disk with resumable chunk uploads.
 - Keep incomplete uploads as hidden .uploading files, then atomically rename them only after a successful upload.
 - Protect all file-manager actions with one access token supplied through UPLOAD_ACCESS_TOKEN.
@@ -84,8 +85,9 @@ The [`deploy/`](deploy/README.md) directory contains an optional Linux systemd +
 ### Operational notes
 
 - A visible `.uploading` file means that an upload is still being written. It is removed or renamed only when the request completes.
-- Pause/Resume retains progress while the browser page and server process remain available. Reloading the page or restarting the server starts a new upload session.
+- Pause/Resume retains progress while the browser page and server process remain available. After reload, browser close, server restart, or deployment, open the original destination folder and select the same local file again; File Workspace validates the saved session, name, size, and destination before resuming remaining chunks. Browsers cannot retain access to a local file after closing, so reselecting it is required.
 - Stop immediately cancels an upload and removes its activity card. A stopped task never returns when a later upload begins; the browser requests cleanup for its incomplete hidden upload session.
+- Incomplete-upload manifests and temporary `.uploading` files are hidden from the workspace. They expire after seven days and are cleaned at startup and hourly. Legacy orphan `.uploading` files created before resumable sessions cannot be resumed; they are cleaned after the same retention period.
 - ZIP archives are generated as a streamed response and are not retained in `Upload/`. Keep sufficient storage for the source files and ensure the proxy does not buffer the archive response.
 - Deletion is irreversible. Back up data you need to retain; the application has no recycle bin or restore operation.
 - The browser remembers the upload token on the current device until **Log out**. Do not use this option on a shared browser profile; log out when finished.
@@ -98,9 +100,9 @@ The [`deploy/`](deploy/README.md) directory contains an optional Linux systemd +
 
 The repository maintains three automated test layers:
 
-- Unit tests for token validation and file-manager storage behavior.
-- API integration tests that exercise the real ASP.NET Core routes in an isolated workspace, including one-hour download tickets and ranged downloads.
-- Playwright UI tests in Chromium for token persistence, localization, folder creation, upload flow, one-click Stop cleanup, selected ZIP downloads, and confirmed file deletion.
+- Unit tests for token validation, resumable upload persistence, cleanup, and file-manager storage behavior.
+- API integration tests that exercise the real ASP.NET Core routes in an isolated workspace, including resumable uploads, one-hour download tickets, and ranged downloads.
+- Playwright UI tests in Chromium for token persistence, localization, folder creation, upload resume after reload, upload flow, one-click Stop cleanup, selected ZIP downloads, and confirmed file deletion.
 
 Run all checks locally:
 
@@ -136,6 +138,7 @@ Project được chủ đích giữ gọn và độc lập. Hiện tại đây c
 - Thu gọn hoặc mở lại sidebar kiểu Explorer trên desktop; dùng cùng menu để mở hoặc đóng navigation overlay trên mobile.
 - Upload nhiều file bằng chọn file hoặc kéo-thả, gồm cả một local folder.
 - Upload vào folder đang mở; mỗi file có tiến độ, tốc độ đã làm mượt, pause, resume và stop độc lập. Stop xóa activity card ngay và yêu cầu dọn phiên upload chưa hoàn tất.
+- Resume upload chưa hoàn tất sau reload, đóng browser, restart server hoặc deploy: quay lại đúng folder đích ban đầu và chọn lại cùng local file trong bảy ngày.
 - Stream file lớn trực tiếp xuống ổ đĩa bằng upload theo chunk có thể resume.
 - Giữ upload chưa hoàn tất ở dạng file .uploading ẩn; chỉ đổi tên nguyên tử khi upload thành công.
 - Bảo vệ mọi thao tác file manager bằng một access token từ UPLOAD_ACCESS_TOKEN.
@@ -203,8 +206,9 @@ Thư mục [`deploy/`](deploy/README.md) có cấu hình tham khảo Linux syste
 ### Lưu ý vận hành
 
 - File `.uploading` đang hiển thị nghĩa là upload vẫn được ghi. Nó chỉ được xóa hoặc đổi tên khi request hoàn tất.
-- Pause/Resume giữ tiến độ khi trang trình duyệt và process server vẫn đang hoạt động. Reload trang hoặc restart server sẽ tạo một phiên upload mới.
+- Pause/Resume giữ tiến độ khi trang trình duyệt và process server vẫn đang hoạt động. Sau reload, đóng browser, restart server hoặc deploy, mở đúng folder đích ban đầu và chọn lại cùng local file; File Workspace sẽ validate session đã lưu, tên, dung lượng và folder đích rồi tiếp tục các chunk còn thiếu. Browser không thể giữ quyền đọc local file sau khi đóng nên cần chọn lại file.
 - Stop hủy upload và xóa activity card ngay. Task đã dừng không được xuất hiện lại khi bắt đầu upload khác; browser yêu cầu server dọn phiên upload ẩn chưa hoàn tất.
+- Manifest upload chưa hoàn tất và file tạm `.uploading` bị ẩn khỏi workspace. Chúng hết hạn sau bảy ngày, được dọn lúc startup và mỗi giờ. File `.uploading` mồ côi từ phiên bản trước chưa có manifest không thể resume; chúng được dọn theo cùng thời hạn.
 - ZIP được tạo dưới dạng response stream và không được lưu lại trong `Upload/`. Cần giữ đủ dung lượng cho các file nguồn và bảo đảm proxy không buffer response archive.
 - Xóa file/folder là không thể hoàn tác. Hãy backup dữ liệu cần giữ; ứng dụng chưa có thùng rác hoặc khôi phục.
 - Trình duyệt ghi nhớ upload token trên thiết bị hiện tại đến khi **Đăng xuất**. Không dùng trên browser profile dùng chung; hãy đăng xuất khi hoàn tất.
@@ -217,9 +221,9 @@ Thư mục [`deploy/`](deploy/README.md) có cấu hình tham khảo Linux syste
 
 Repository duy trì ba tầng automated test:
 
-- Unit test cho token validation và hành vi lưu trữ của file manager.
-- API integration test chạy route ASP.NET Core thật trong workspace cô lập, gồm ticket tải một giờ và tải theo range.
-- Playwright UI test trên Chromium cho lưu token, đổi ngôn ngữ, tạo folder, upload, kiểm tra Stop một lần, tải ZIP các mục đã chọn và xóa file có xác nhận.
+- Unit test cho token validation, persistence/cleanup upload resume và hành vi lưu trữ của file manager.
+- API integration test chạy route ASP.NET Core thật trong workspace cô lập, gồm upload resume, ticket tải một giờ và tải theo range.
+- Playwright UI test trên Chromium cho lưu token, đổi ngôn ngữ, tạo folder, resume upload sau reload, upload, kiểm tra Stop một lần, tải ZIP các mục đã chọn và xóa file có xác nhận.
 
 Chạy toàn bộ kiểm tra tại local:
 

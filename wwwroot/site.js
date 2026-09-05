@@ -2,6 +2,7 @@ const CHUNK_SIZE = 8 * 1024 * 1024;
 const MAX_CONCURRENT_UPLOADS = 3;
 const SPEED_SAMPLE_WINDOW_MS = 4000;
 const SPEED_MIN_SAMPLE_MS = 250;
+const RESUME_STORAGE_KEY = 'file-workspace-upload-resume';
 
 const copy = {
   vi: {
@@ -11,9 +12,9 @@ const copy = {
     dropZoneText: 'Kéo thả file vào đây để upload vào folder hiện tại', dropZoneLabel: 'Chọn file để upload vào folder hiện tại', home: 'Upload', filesLoading: 'Đang tải nội dung…', filesEmpty: 'Folder này đang trống.', refreshFilesHint: 'Nhấn Làm mới để xem file với token hiện tại.',
     folder: 'Folder', download: 'Tải xuống', downloadSelected: 'Tải ZIP ({count})', deleteSelected: 'Xóa ({count})', deleteSelectedTitle: 'Xóa {count} mục đã chọn', selectAll: 'Chọn tất cả mục đang hiển thị', selectItem: 'Chọn {name}', downloadStarted: 'Đã bắt đầu tải file.', archiveStarted: 'Đã bắt đầu tạo ZIP.', delete: 'Xóa', deleteFile: 'Xóa file', deletePermanently: 'Xóa vĩnh viễn', deleteConfirmation: 'Xóa vĩnh viễn “{name}”? Thao tác này không thể hoàn tác.', deleteSelectionConfirmation: 'Xóa vĩnh viễn {count} mục đã chọn? Folder được chọn và toàn bộ nội dung trong đó cũng sẽ bị xóa. Thao tác này không thể hoàn tác.', fileDeleted: 'Đã xóa file.', itemsDeleted: 'Đã xóa {count} mục.', close: 'Đóng', uploadListTitle: 'Tiến trình upload',
     folderName: 'Tên folder', cancel: 'Hủy', createFolder: 'Tạo folder', creatingFolder: 'Đang tạo…', folderCreated: 'Đã tạo folder.',
-    states: { preparing: 'Đang chuẩn bị…', queued: 'Đang chờ…', uploading: 'Đang upload…', paused: 'Đã tạm dừng', stopped: 'Đã dừng', completed: 'Hoàn tất', error: 'Có lỗi' },
+    states: { preparing: 'Đang chuẩn bị…', resuming: 'Đang khôi phục upload…', queued: 'Đang chờ…', uploading: 'Đang upload…', paused: 'Đã tạm dừng', stopped: 'Đã dừng', completed: 'Hoàn tất', error: 'Có lỗi' },
     buttons: { pause: 'Pause', resume: 'Resume', stop: 'Stop' },
-    errors: { createSession: 'Không thể tạo phiên upload.', invalidResponse: 'Phản hồi server không hợp lệ.', connection: 'Không kết nối được server.', uploadFailed: 'Upload thất bại.', unauthorized: 'Upload token không hợp lệ hoặc đã hết quyền truy cập.', invalidFileName: 'Tên file không hợp lệ.', invalidFileSize: 'Dung lượng file không hợp lệ.', invalidFolder: 'Tên hoặc đường dẫn thư mục không hợp lệ.', folderExists: 'Tên thư mục đã tồn tại.', folderNotFound: 'Thư mục không tồn tại.', fileNotFound: 'File không tồn tại.', archiveEmpty: 'Cần chọn ít nhất một file hoặc folder.', archiveNotFound: 'File hoặc folder không tồn tại.', folderHasIncompleteUpload: 'Không thể xóa folder đang có upload chưa hoàn tất.', sessionNotFound: 'Phiên upload không tồn tại hoặc đã kết thúc.', invalidChunk: 'Chunk không hợp lệ.', invalidChunkSize: 'Kích thước chunk không hợp lệ.', incompleteChunk: 'Dữ liệu chunk chưa hoàn chỉnh.', downloadFailed: 'Không thể tải file.' }
+    errors: { createSession: 'Không thể tạo phiên upload.', invalidResponse: 'Phản hồi server không hợp lệ.', connection: 'Không kết nối được server.', uploadFailed: 'Upload thất bại.', unauthorized: 'Upload token không hợp lệ hoặc đã hết quyền truy cập.', invalidFileName: 'Tên file không hợp lệ.', invalidFileSize: 'Dung lượng file không hợp lệ.', invalidFolder: 'Tên hoặc đường dẫn thư mục không hợp lệ.', folderExists: 'Tên thư mục đã tồn tại.', folderNotFound: 'Thư mục không tồn tại.', fileNotFound: 'File không tồn tại.', archiveEmpty: 'Cần chọn ít nhất một file hoặc folder.', archiveNotFound: 'File hoặc folder không tồn tại.', folderHasIncompleteUpload: 'Không thể xóa folder đang có upload chưa hoàn tất.', sessionNotFound: 'Phiên upload không tồn tại hoặc đã hết hạn.', resumeMismatch: 'File đã chọn không khớp với upload đang chờ.', invalidChunk: 'Chunk không hợp lệ.', invalidChunkSize: 'Kích thước chunk không hợp lệ.', incompleteChunk: 'Dữ liệu chunk chưa hoàn chỉnh.', downloadFailed: 'Không thể tải file.' }
   },
   en: {
     documentTitle: 'File Workspace', languageLabel: 'Language', title: 'Private file workspace', hint: 'Enter the upload token in the sidebar to access your files.', searchPlaceholder: 'Search current folder', myFiles: 'My files', folders: 'Folders', privateWorkspace: 'Private file workspace', nameColumn: 'Name', modifiedColumn: 'Modified', sizeColumn: 'Size', newLabel: 'New', openNavigation: 'Open navigation', closeNavigation: 'Close navigation', toggleFolder: 'Toggle folder',
@@ -22,9 +23,9 @@ const copy = {
     dropZoneText: 'Drop files here to upload them to the current folder', dropZoneLabel: 'Choose files to upload to the current folder', home: 'Upload', filesLoading: 'Loading contents…', filesEmpty: 'This folder is empty.', refreshFilesHint: 'Select Refresh to view files with the current token.',
     folder: 'Folder', download: 'Download', downloadSelected: 'Download ZIP ({count})', deleteSelected: 'Delete ({count})', deleteSelectedTitle: 'Delete {count} selected items', selectAll: 'Select all visible items', selectItem: 'Select {name}', downloadStarted: 'The download has started.', archiveStarted: 'ZIP download has started.', delete: 'Delete', deleteFile: 'Delete file', deletePermanently: 'Delete permanently', deleteConfirmation: 'Permanently delete “{name}”? This cannot be undone.', deleteSelectionConfirmation: 'Permanently delete {count} selected items? Selected folders and all their contents will also be deleted. This cannot be undone.', fileDeleted: 'File deleted.', itemsDeleted: 'Deleted {count} items.', close: 'Close', uploadListTitle: 'Upload activity',
     folderName: 'Folder name', cancel: 'Cancel', createFolder: 'Create folder', creatingFolder: 'Creating…', folderCreated: 'Folder created.',
-    states: { preparing: 'Preparing…', queued: 'Queued', uploading: 'Uploading…', paused: 'Paused', stopped: 'Stopped', completed: 'Completed', error: 'Error' },
+    states: { preparing: 'Preparing…', resuming: 'Resuming upload…', queued: 'Queued', uploading: 'Uploading…', paused: 'Paused', stopped: 'Stopped', completed: 'Completed', error: 'Error' },
     buttons: { pause: 'Pause', resume: 'Resume', stop: 'Stop' },
-    errors: { createSession: 'Could not create the upload session.', invalidResponse: 'The server returned an invalid response.', connection: 'Could not connect to the server.', uploadFailed: 'Upload failed.', unauthorized: 'The upload token is invalid or no longer has access.', invalidFileName: 'The file name is invalid.', invalidFileSize: 'The file size is invalid.', invalidFolder: 'The folder name or path is invalid.', folderExists: 'A folder with this name already exists.', folderNotFound: 'The folder does not exist.', fileNotFound: 'The file does not exist.', archiveEmpty: 'Select at least one file or folder.', archiveNotFound: 'The file or folder does not exist.', folderHasIncompleteUpload: 'A folder with an incomplete upload cannot be deleted.', sessionNotFound: 'The upload session does not exist or has ended.', invalidChunk: 'The upload chunk is invalid.', invalidChunkSize: 'The upload chunk size is invalid.', incompleteChunk: 'The upload chunk is incomplete.', downloadFailed: 'Could not download the file.' }
+    errors: { createSession: 'Could not create the upload session.', invalidResponse: 'The server returned an invalid response.', connection: 'Could not connect to the server.', uploadFailed: 'Upload failed.', unauthorized: 'The upload token is invalid or no longer has access.', invalidFileName: 'The file name is invalid.', invalidFileSize: 'The file size is invalid.', invalidFolder: 'The folder name or path is invalid.', folderExists: 'A folder with this name already exists.', folderNotFound: 'The folder does not exist.', fileNotFound: 'The file does not exist.', archiveEmpty: 'Select at least one file or folder.', archiveNotFound: 'The file or folder does not exist.', folderHasIncompleteUpload: 'A folder with an incomplete upload cannot be deleted.', sessionNotFound: 'The upload session does not exist or has expired.', resumeMismatch: 'The selected file does not match the pending upload.', invalidChunk: 'The upload chunk is invalid.', invalidChunkSize: 'The upload chunk size is invalid.', incompleteChunk: 'The upload chunk is incomplete.', downloadFailed: 'Could not download the file.' }
   }
 };
 
@@ -82,6 +83,28 @@ const expandedTreePaths = new Set(['']);
 const newFilePaths = new Set();
 const selectedPaths = new Set();
 let pendingDelete;
+
+function getResumeRecords() {
+  try {
+    const records = JSON.parse(localStorage.getItem(RESUME_STORAGE_KEY) || '[]');
+    return Array.isArray(records) ? records : [];
+  } catch { return []; }
+}
+
+function saveResumeRecord(record) {
+  const records = getResumeRecords().filter(item => item.uploadId !== record.uploadId);
+  records.push(record);
+  localStorage.setItem(RESUME_STORAGE_KEY, JSON.stringify(records));
+}
+
+function removeResumeRecord(uploadId) {
+  localStorage.setItem(RESUME_STORAGE_KEY, JSON.stringify(getResumeRecords().filter(record => record.uploadId !== uploadId)));
+}
+
+function findResumeRecord(file, targetPath) {
+  return getResumeRecords().find(record => record.name === file.name && record.size === file.size && record.targetPath === targetPath);
+}
+
 const storedLanguage = localStorage.getItem('file-workspace-language') ?? localStorage.getItem('file-upload-language');
 if (storedLanguage) {
   localStorage.setItem('file-workspace-language', storedLanguage);
@@ -164,7 +187,7 @@ function addFiles(fileList, preserveFolderStructure) {
     const localPath = preserveFolderStructure ? file.webkitRelativePath : '';
     const localFolder = localPath.includes('/') ? localPath.split('/').slice(0, -1).join('/') : '';
     const destinationPath = joinPath(currentPath, localFolder);
-    const upload = new UploadTask(file, token, destinationPath);
+    const upload = new UploadTask(file, token, destinationPath, findResumeRecord(file, destinationPath));
     uploads.push(upload);
     upload.render();
     upload.initialize();
@@ -182,12 +205,13 @@ function scheduleUploads() {
 }
 
 class UploadTask {
-  constructor(file, token, targetPath) {
+  constructor(file, token, targetPath, resumeRecord = null) {
     this.file = file;
     this.token = token;
     this.targetPath = targetPath;
-    this.uploadId = null;
-    this.state = 'preparing';
+    this.uploadId = resumeRecord?.uploadId || null;
+    this.resumeRecord = resumeRecord;
+    this.state = resumeRecord ? 'resuming' : 'preparing';
     this.uploadedBytes = 0;
     this.nextChunk = 0;
     this.xhr = null;
@@ -202,16 +226,25 @@ class UploadTask {
 
   async initialize() {
     try {
-      const response = await fetch('/api/uploads', { method: 'POST', headers: {
+      const response = await fetch(this.uploadId ? `/api/uploads/${this.uploadId}/resume` : '/api/uploads', { method: 'POST', headers: {
         'X-Upload-Token': this.token, 'X-File-Name': encodeURIComponent(this.file.name), 'X-File-Size': String(this.file.size), 'X-Target-Folder': encodeURIComponent(this.targetPath)
       }});
       const data = await readResponse(response);
+      if (!response.ok && this.resumeRecord && response.status === 404) {
+        removeResumeRecord(this.uploadId); this.uploadId = null; this.resumeRecord = null; this.state = 'preparing';
+        return this.initialize();
+      }
       if (!response.ok) throw new Error(response.status === 401 ? t('errors.unauthorized') : data.error || t('errors.uploadFailed'));
       this.uploadId = data.uploadId;
       this.uploadedBytes = data.uploadedBytes || 0;
+      this.nextChunk = data.nextChunk || 0;
       if (this.state === 'stopped') { await this.deleteSession(); return; }
       if (data.completed) this.complete();
-      else { this.state = this.state === 'paused' ? 'paused' : 'queued'; scheduleUploads(); }
+      else {
+        this.resumeRecord = { uploadId: this.uploadId, name: this.file.name, size: this.file.size, targetPath: this.targetPath };
+        saveResumeRecord(this.resumeRecord);
+        this.state = this.state === 'paused' ? 'paused' : 'queued'; scheduleUploads();
+      }
     } catch (error) {
       if (this.state !== 'stopped') { this.state = 'error'; this.error = localizeError(error.message || t('errors.createSession')); }
     }
@@ -275,14 +308,15 @@ class UploadTask {
 
   resetSpeed() { this.speed = 0; this.speedSamples = []; }
 
-  pause() { if (!['preparing', 'queued', 'uploading'].includes(this.state)) return; this.state = 'paused'; this.resetSpeed(); this.xhr?.abort(); this.render(); updateUploadCount(); }
+  pause() { if (!['preparing', 'resuming', 'queued', 'uploading'].includes(this.state)) return; this.state = 'paused'; this.resetSpeed(); this.xhr?.abort(); this.render(); updateUploadCount(); }
   resume() { if (this.state !== 'paused') return; this.state = this.uploadId ? 'queued' : 'preparing'; this.error = ''; this.render(); scheduleUploads(); }
-  async stop() { if (['stopped', 'completed'].includes(this.state)) return; this.state = 'stopped'; this.resetSpeed(); this.xhr?.abort(); this.remove(); await this.deleteSession(); }
+  async stop() { if (['stopped', 'completed'].includes(this.state)) return; this.state = 'stopped'; this.resetSpeed(); this.xhr?.abort(); removeResumeRecord(this.uploadId); this.remove(); await this.deleteSession(); }
   async deleteSession() { if (!this.uploadId) return; try { await fetch(`/api/uploads/${this.uploadId}`, { method: 'DELETE', headers: { 'X-Upload-Token': this.token } }); } catch { /* local state is already stopped */ } }
 
   complete() {
     if (this.state === 'completed') return;
     this.state = 'completed'; this.uploadedBytes = this.file.size; this.resetSpeed();
+    removeResumeRecord(this.uploadId);
     newFilePaths.add(joinPath(this.targetPath, this.file.name));
     if (currentPath === this.targetPath) loadFiles();
     window.setTimeout(() => this.remove(), 0);
@@ -304,7 +338,7 @@ class UploadTask {
     this.statsElement.textContent = `${formatBytes(displayedBytes)} / ${formatBytes(this.file.size)} · ${this.state === 'uploading' ? `${formatBytes(this.speed)}/s` : `${percent}%`}`;
     if (this.renderedState !== this.state || this.renderedLanguage !== currentLanguage) {
       this.controlsElement.replaceChildren();
-      if (['preparing', 'queued', 'uploading'].includes(this.state)) this.controlsElement.append(button(t('buttons.pause'), 'secondary', () => this.pause()), button(t('buttons.stop'), 'danger', () => this.stop()));
+      if (['preparing', 'resuming', 'queued', 'uploading'].includes(this.state)) this.controlsElement.append(button(t('buttons.pause'), 'secondary', () => this.pause()), button(t('buttons.stop'), 'danger', () => this.stop()));
       else if (this.state === 'paused') this.controlsElement.append(button(t('buttons.resume'), 'primary', () => this.resume()), button(t('buttons.stop'), 'danger', () => this.stop()));
       else if (this.state === 'error') this.controlsElement.append(button(t('buttons.stop'), 'danger', () => this.stop()));
       this.renderedState = this.state; this.renderedLanguage = currentLanguage;
@@ -582,7 +616,7 @@ function updateAuthControls() {
 }
 
 function updateUploadCount() {
-  const active = uploads.filter(upload => ['preparing', 'queued', 'uploading', 'paused'].includes(upload.state)).length;
+  const active = uploads.filter(upload => ['preparing', 'resuming', 'queued', 'uploading', 'paused'].includes(upload.state)).length;
   uploadPanel.hidden = active === 0;
   uploadCount.textContent = currentLanguage === 'vi' ? `${active} file` : `${active} file${active === 1 ? '' : 's'}`;
 }
@@ -606,4 +640,4 @@ function t(key) { return key.split('.').reduce((value, part) => value?.[part], c
 function joinPath(...parts) { return parts.filter(Boolean).join('/').replace(/\/{2,}/g, '/'); }
 function formatBytes(bytes) { if (!Number.isFinite(bytes) || bytes <= 0) return '0 B'; const units = ['B', 'KB', 'MB', 'GB', 'TB']; const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1); return `${(bytes / 1024 ** index).toFixed(index ? 1 : 0)} ${units[index]}`; }
 function formatDate(value) { const date = new Date(value); if (Number.isNaN(date.getTime())) return '—'; return new Intl.DateTimeFormat(currentLanguage === 'vi' ? 'vi-VN' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(date); }
-function localizeError(message) { const known = { 'Tên file không hợp lệ.': 'invalidFileName', 'Dung lượng file không hợp lệ.': 'invalidFileSize', 'Thư mục đích không hợp lệ.': 'invalidFolder', 'Tên hoặc đường dẫn thư mục không hợp lệ.': 'invalidFolder', 'Đường dẫn thư mục không hợp lệ.': 'invalidFolder', 'Tên thư mục đã tồn tại.': 'folderExists', 'Thư mục không tồn tại.': 'folderNotFound', 'File không tồn tại.': 'fileNotFound', 'Cần chọn ít nhất một file hoặc folder.': 'archiveEmpty', 'File hoặc folder không tồn tại.': 'archiveNotFound', 'Không thể xóa folder đang có upload chưa hoàn tất.': 'folderHasIncompleteUpload', 'Phiên upload không tồn tại hoặc đã kết thúc.': 'sessionNotFound', 'Chunk không hợp lệ.': 'invalidChunk', 'Kích thước chunk không hợp lệ.': 'invalidChunkSize', 'Dữ liệu chunk chưa hoàn chỉnh.': 'incompleteChunk' }; return known[message] ? t(`errors.${known[message]}`) : message; }
+function localizeError(message) { const known = { 'Tên file không hợp lệ.': 'invalidFileName', 'Dung lượng file không hợp lệ.': 'invalidFileSize', 'Thư mục đích không hợp lệ.': 'invalidFolder', 'Tên hoặc đường dẫn thư mục không hợp lệ.': 'invalidFolder', 'Đường dẫn thư mục không hợp lệ.': 'invalidFolder', 'Tên thư mục đã tồn tại.': 'folderExists', 'Thư mục không tồn tại.': 'folderNotFound', 'File không tồn tại.': 'fileNotFound', 'Cần chọn ít nhất một file hoặc folder.': 'archiveEmpty', 'File hoặc folder không tồn tại.': 'archiveNotFound', 'Không thể xóa folder đang có upload chưa hoàn tất.': 'folderHasIncompleteUpload', 'Phiên upload không tồn tại hoặc đã kết thúc.': 'sessionNotFound', 'Thông tin file khôi phục không khớp.': 'resumeMismatch', 'Chunk không hợp lệ.': 'invalidChunk', 'Kích thước chunk không hợp lệ.': 'invalidChunkSize', 'Dữ liệu chunk chưa hoàn chỉnh.': 'incompleteChunk' }; return known[message] ? t(`errors.${known[message]}`) : message; }

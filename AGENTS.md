@@ -16,6 +16,7 @@ Do not modify a file until applicable documents have been read. If a request con
 
 - Preserve architecture in `PROJECT-MEMORY.md`: `Program.cs` composes; endpoints own HTTP; services own file-system/application behavior; models own contracts; `wwwroot` owns browser presentation.
 - Maintain token protection, safe server-side path resolution, hidden incomplete uploads. Never expose `Upload/` through static-file middleware.
+- Preserve resumable uploads: session metadata is server-side, hidden, token-protected, and retained for seven days; browser records never contain the access token. Resume requires reselecting the same local file in its original destination folder.
 - Preserve direct-download tickets as random one-file bearer URLs: one-hour lifetime, in-memory only, HTTP range compatible, never contain the shared upload token.
 - Treat all client input, paths, filenames, tokens as untrusted.
 - Prefer smallest standard-library/browser solution. Do not add dependencies, roles, databases, queues, cloud integrations, speculative abstractions, configuration without accepted requirement.

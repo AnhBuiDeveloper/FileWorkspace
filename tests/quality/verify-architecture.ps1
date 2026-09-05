@@ -59,11 +59,13 @@ Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'Models\ApiContracts.
 Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'Services\FileManagerService.cs')) 'Missing FileManagerService boundary.'
 Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'Services\UploadTokenValidator.cs')) 'Missing UploadTokenValidator boundary.'
 Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'Services\DownloadTicketService.cs')) 'Missing DownloadTicketService boundary.'
+Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'Services\UploadCleanupHostedService.cs')) 'Missing UploadCleanupHostedService boundary.'
 
 Test-DoesNotMatch 'Models\ApiContracts.cs' 'using\s+FileWorkspace\.(Endpoints|Services)' 'Models must not depend on Endpoints or Services.'
 Test-DoesNotMatch 'Services\FileManagerService.cs' 'using\s+FileWorkspace\.Endpoints' 'Services must not depend on Endpoints.'
 Test-DoesNotMatch 'Services\UploadTokenValidator.cs' 'using\s+FileWorkspace\.Endpoints' 'Services must not depend on Endpoints.'
 Test-DoesNotMatch 'Services\DownloadTicketService.cs' 'using\s+FileWorkspace\.Endpoints' 'Services must not depend on Endpoints.'
+Test-DoesNotMatch 'Services\UploadCleanupHostedService.cs' 'using\s+FileWorkspace\.Endpoints' 'Services must not depend on Endpoints.'
 Test-DoesNotMatch 'Configuration\EnvironmentFileConfigurationExtensions.cs' 'using\s+FileWorkspace\.(Endpoints|Services)' 'Configuration must not depend on Endpoints or Services.'
 Test-DoesNotMatch 'Endpoints\FileWorkspaceEndpointExtensions.cs' 'new\s+(FileManagerService|UploadTokenValidator|DownloadTicketService)\s*\(' 'Endpoints must receive services through dependency injection.'
 

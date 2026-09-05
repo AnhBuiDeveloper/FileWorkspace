@@ -168,4 +168,40 @@ public sealed class FileManagerApiTests
         var unknownResponse = await client.GetAsync("/api/downloads/not-a-ticket");
         Assert.Equal(HttpStatusCode.NotFound, unknownResponse.StatusCode);
     }
+
+    [Fact]
+    public async Task Authenticated_user_can_resume_an_incomplete_upload()
+    {
+        using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+        var bytes = new byte[UploadProtocol.ChunkSize + 2];
+        var startRequest = new HttpRequestMessage(HttpMethod.Post, "/api/uploads");
+        startRequest.Headers.Add("X-Upload-Token", TestWebApplicationFactory.AccessToken);
+        startRequest.Headers.Add("X-File-Name", "resume.txt");
+        startRequest.Headers.Add("X-File-Size", bytes.Length.ToString());
+        startRequest.Headers.Add("X-Target-Folder", string.Empty);
+        var startResponse = await client.SendAsync(startRequest);
+        var start = await startResponse.Content.ReadFromJsonAsync<UploadStartResponse>();
+        Assert.NotNull(start);
+
+        var firstChunk = new HttpRequestMessage(HttpMethod.Put, $"/api/uploads/{start!.UploadId}/chunks/0")
+        {
+            Content = new ByteArrayContent(bytes[..UploadProtocol.ChunkSize])
+        };
+        firstChunk.Headers.Add("X-Upload-Token", TestWebApplicationFactory.AccessToken);
+        (await client.SendAsync(firstChunk)).EnsureSuccessStatusCode();
+
+        var resumeRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/uploads/{start.UploadId}/resume");
+        resumeRequest.Headers.Add("X-Upload-Token", TestWebApplicationFactory.AccessToken);
+        resumeRequest.Headers.Add("X-File-Name", "resume.txt");
+        resumeRequest.Headers.Add("X-File-Size", bytes.Length.ToString());
+        resumeRequest.Headers.Add("X-Target-Folder", string.Empty);
+        var resumeResponse = await client.SendAsync(resumeRequest);
+        resumeResponse.EnsureSuccessStatusCode();
+        var resumed = await resumeResponse.Content.ReadFromJsonAsync<UploadStartResponse>();
+
+        Assert.NotNull(resumed);
+        Assert.Equal(UploadProtocol.ChunkSize, resumed!.UploadedBytes);
+        Assert.Equal(1, resumed.NextChunk);
+    }
 }
