@@ -94,7 +94,7 @@ test('removes a stopped upload before a new upload starts', async ({ page }) => 
   await expect(upload).toHaveCount(0);
 });
 
-test('resumes a persisted upload when the same file is selected after reload', async ({ page }) => {
+test('shows a browser-local resume queue and resumes only after user action', async ({ page, browser }) => {
   await signIn(page);
   const fileName = `resume-${Date.now()}.bin`;
   const buffer = Buffer.alloc(8 * 1024 * 1024 + 1, 'r');
@@ -107,11 +107,29 @@ test('resumes a persisted upload when the same file is selected after reload', a
     data: buffer.subarray(0, 8 * 1024 * 1024)
   });
   await page.evaluate(record => localStorage.setItem('file-workspace-upload-resume', JSON.stringify([record])), {
-    uploadId: start.uploadId, name: fileName, size: buffer.length, targetPath: ''
+    uploadId: start.uploadId, name: fileName, size: buffer.length, targetPath: '', uploadedBytes: 8 * 1024 * 1024
   });
 
   await page.reload();
+  const resumeCard = page.locator('#resume-panel .upload-item').filter({ hasText: fileName });
+  await expect(resumeCard).toBeVisible();
+  await expect(resumeCard).toContainText('8.0 MB / 8.0 MB · 99%');
+  for (const width of [320, 375, 430, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(resumeCard.getByRole('button', { name: 'Resume', exact: true })).toBeVisible();
+    expect(await page.locator('body').evaluate(body => body.scrollWidth <= window.innerWidth)).toBeTruthy();
+  }
+
+  const otherContext = await browser.newContext();
+  const otherPage = await otherContext.newPage();
+  await otherPage.goto('/');
+  await otherPage.locator('#upload-token').fill(token);
+  await otherPage.getByRole('button', { name: 'Refresh' }).click();
+  await expect(otherPage.locator('#resume-panel')).toBeHidden();
+  await otherContext.close();
+
   const resumeRequest = page.waitForRequest(request => request.url().endsWith(`/api/uploads/${start.uploadId}/resume`));
+  await resumeCard.getByRole('button', { name: 'Resume', exact: true }).click();
   await page.locator('#file-input').setInputFiles({ name: fileName, mimeType: 'application/octet-stream', buffer });
   const request = await resumeRequest;
 
