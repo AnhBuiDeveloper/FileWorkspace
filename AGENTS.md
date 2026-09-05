@@ -18,6 +18,7 @@ Do not modify a file until applicable documents have been read. If a request con
 - Maintain token protection, safe server-side path resolution, hidden incomplete uploads. Never expose `Upload/` through static-file middleware.
 - Preserve resumable uploads: session metadata is server-side, hidden, token-protected, and retained for seven days; browser records never contain the access token. Resume requires reselecting the same local file in its original destination folder.
 - Preserve direct-download tickets as random one-file bearer URLs: one-hour lifetime, in-memory only, HTTP range compatible, never contain the shared upload token.
+- Preserve per-IP rate limiting on every `/api/*` route (strict, no-queue `api` policy for click-driven endpoints; high-burst `api-uploads` token bucket for the upload-session lifecycle) and the `ForwardedHeaders` middleware it depends on for real client IPs behind a reverse proxy. Preserve the minimal audit log (action/path/client IP only) on delete, download, ZIP-archive, and ticket-issuance endpoints; never log the upload token or a ticket value.
 - Treat all client input, paths, filenames, tokens as untrusted.
 - Prefer smallest standard-library/browser solution. Do not add dependencies, roles, databases, queues, cloud integrations, speculative abstractions, configuration without accepted requirement.
 - Keep validation, authorization, path handling, error mapping, localized strings centralized. Do not duplicate rules between layers.
