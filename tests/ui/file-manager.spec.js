@@ -152,13 +152,13 @@ test('selects multiple files and folders for a ZIP download', async ({ page }) =
 
 test('creates a scoped GET ticket for an individual download', async ({ page }) => {
   await signIn(page);
-  const fileName = 'ticket-proof.txt';
+  const fileName = `ticket-${Date.now()}.txt`;
   await page.locator('#file-input').setInputFiles({ name: fileName, mimeType: 'text/plain', buffer: Buffer.from('Ticket test') });
   await expect(page.getByRole('button', { name: fileName, exact: true })).toBeVisible();
 
   const ticketRequest = page.waitForRequest(request => request.url().endsWith('/api/files/download-tickets'));
   const downloadPopup = page.waitForEvent('popup');
-  await page.getByRole('button', { name: 'Download', exact: true }).click();
+  await page.locator('.file-entry').filter({ has: page.getByRole('button', { name: fileName, exact: true }) }).getByRole('button', { name: 'Download', exact: true }).click();
   const request = await ticketRequest;
   const popup = await downloadPopup;
 
