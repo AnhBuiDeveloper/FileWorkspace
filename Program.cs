@@ -10,6 +10,8 @@ builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 
 
 builder.Services.AddSingleton<UploadTokenValidator>();
 builder.Services.AddSingleton<FileManagerService>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<DownloadTicketService>();
 
 var app = builder.Build();
 

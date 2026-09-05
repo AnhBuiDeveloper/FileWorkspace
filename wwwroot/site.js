@@ -487,11 +487,26 @@ async function createFolder(event) {
   finally { submit.disabled = false; }
 }
 
-function downloadFile(entry) {
+async function downloadFile(entry) {
   const token = tokenInput.value.trim(); if (!token) return;
-  const form = document.createElement('form'); form.method = 'post'; form.action = '/api/files/download'; form.target = '_blank'; form.hidden = true;
-  [['path', joinPath(currentPath, entry.name)], ['token', token]].forEach(([name, value]) => { const input = document.createElement('input'); input.type = 'hidden'; input.name = name; input.value = value; form.append(input); });
-  document.body.append(form); form.submit(); form.remove(); filesStatus.textContent = t('downloadStarted');
+  const downloadWindow = window.open('', '_blank');
+  try {
+    const response = await fetch('/api/files/download-tickets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Upload-Token': token },
+      body: JSON.stringify({ path: joinPath(currentPath, entry.name) })
+    });
+    const data = await readResponse(response);
+    if (!response.ok || !data.url) throw new Error(response.status === 401 ? t('errors.unauthorized') : data.error || t('errors.downloadFailed'));
+    if (downloadWindow) {
+      downloadWindow.opener = null;
+      downloadWindow.location.replace(data.url);
+    } else window.location.assign(data.url);
+    filesStatus.textContent = t('downloadStarted');
+  } catch (error) {
+    if (downloadWindow) downloadWindow.close();
+    filesStatus.textContent = localizeError(error.message || t('errors.downloadFailed'));
+  }
 }
 
 function downloadSelection() {

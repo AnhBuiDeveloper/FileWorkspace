@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.IO.Compression;
 using System.Text;
@@ -132,5 +133,39 @@ public sealed class FileManagerApiTests
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.NotNull(body);
+    }
+
+    [Fact]
+    public async Task Download_ticket_allows_ranged_file_download_without_the_access_token_in_the_url()
+    {
+        using var factory = new TestWebApplicationFactory();
+        using var client = factory.CreateClient();
+        var bytes = Encoding.UTF8.GetBytes("ticketed file content");
+        Directory.CreateDirectory(factory.UploadRoot);
+        await File.WriteAllBytesAsync(Path.Combine(factory.UploadRoot, "proof.txt"), bytes);
+
+        var createTicket = new HttpRequestMessage(HttpMethod.Post, "/api/files/download-tickets")
+        {
+            Content = JsonContent.Create(new DownloadTicketRequest("proof.txt"))
+        };
+        createTicket.Headers.Add("X-Upload-Token", TestWebApplicationFactory.AccessToken);
+        var ticketResponse = await client.SendAsync(createTicket);
+        ticketResponse.EnsureSuccessStatusCode();
+        var ticket = await ticketResponse.Content.ReadFromJsonAsync<DownloadTicketResponse>();
+
+        Assert.NotNull(ticket);
+        Assert.StartsWith("/api/downloads/", ticket!.Url, StringComparison.Ordinal);
+        Assert.DoesNotContain(TestWebApplicationFactory.AccessToken, ticket.Url, StringComparison.Ordinal);
+        Assert.Equal(DateTimeOffset.UtcNow.AddHours(1), ticket.ExpiresAtUtc, TimeSpan.FromSeconds(5));
+
+        var downloadRequest = new HttpRequestMessage(HttpMethod.Get, ticket.Url);
+        downloadRequest.Headers.Range = new RangeHeaderValue(0, 5);
+        var downloadResponse = await client.SendAsync(downloadRequest);
+
+        Assert.Equal(HttpStatusCode.PartialContent, downloadResponse.StatusCode);
+        Assert.Equal(bytes[..6], await downloadResponse.Content.ReadAsByteArrayAsync());
+
+        var unknownResponse = await client.GetAsync("/api/downloads/not-a-ticket");
+        Assert.Equal(HttpStatusCode.NotFound, unknownResponse.StatusCode);
     }
 }

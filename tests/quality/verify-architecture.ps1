@@ -58,12 +58,14 @@ Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'Endpoints\FileWorksp
 Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'Models\ApiContracts.cs')) 'Missing Models boundary.'
 Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'Services\FileManagerService.cs')) 'Missing FileManagerService boundary.'
 Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'Services\UploadTokenValidator.cs')) 'Missing UploadTokenValidator boundary.'
+Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'Services\DownloadTicketService.cs')) 'Missing DownloadTicketService boundary.'
 
 Test-DoesNotMatch 'Models\ApiContracts.cs' 'using\s+FileWorkspace\.(Endpoints|Services)' 'Models must not depend on Endpoints or Services.'
 Test-DoesNotMatch 'Services\FileManagerService.cs' 'using\s+FileWorkspace\.Endpoints' 'Services must not depend on Endpoints.'
 Test-DoesNotMatch 'Services\UploadTokenValidator.cs' 'using\s+FileWorkspace\.Endpoints' 'Services must not depend on Endpoints.'
+Test-DoesNotMatch 'Services\DownloadTicketService.cs' 'using\s+FileWorkspace\.Endpoints' 'Services must not depend on Endpoints.'
 Test-DoesNotMatch 'Configuration\EnvironmentFileConfigurationExtensions.cs' 'using\s+FileWorkspace\.(Endpoints|Services)' 'Configuration must not depend on Endpoints or Services.'
-Test-DoesNotMatch 'Endpoints\FileWorkspaceEndpointExtensions.cs' 'new\s+(FileManagerService|UploadTokenValidator)\s*\(' 'Endpoints must receive services through dependency injection.'
+Test-DoesNotMatch 'Endpoints\FileWorkspaceEndpointExtensions.cs' 'new\s+(FileManagerService|UploadTokenValidator|DownloadTicketService)\s*\(' 'Endpoints must receive services through dependency injection.'
 
 # KISS: Program is only composition; complex behavior belongs in the boundaries above.
 Test-Condition ((Get-SourceLineCount 'Program.cs') -le 45) 'Program.cs is too large; move behavior to an appropriate boundary.'
@@ -80,6 +82,7 @@ Test-Condition ($projectContent -notmatch '<PackageReference\b') 'Adding a produ
 # Protect the test baseline for the two stateful application services and the HTTP boundary.
 Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'FileWorkspace.Tests\Services\FileManagerServiceTests.cs')) 'FileManagerService requires service tests.'
 Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'FileWorkspace.Tests\Services\UploadTokenValidatorTests.cs')) 'UploadTokenValidator requires service tests.'
+Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'FileWorkspace.Tests\Services\DownloadTicketServiceTests.cs')) 'DownloadTicketService requires service tests.'
 Test-Condition (Test-Path -LiteralPath (Get-RepositoryFile 'FileWorkspace.Tests\Endpoints\FileManagerApiTests.cs')) 'HTTP endpoints require API integration tests.'
 
 # Durable documentation is part of the quality contract.

@@ -13,6 +13,7 @@ It is deliberately small and self-contained. Today it is not a multi-tenant clou
 ### Highlights
 
 - Browse the file workspace, navigate folders, create folders, download individual or selected files/folders as a ZIP archive, and permanently delete selected files or folders after confirmation.
+- Download one file through a one-hour, one-file GET ticket. This lets download managers such as IDM capture the download and use HTTP Range/resume without exposing the shared access token in the URL.
 - Collapse or reopen the Explorer-style sidebar on desktop; use the same menu to open or close the mobile navigation overlay.
 - Upload multiple files through selection or drag and drop, including an entire local folder.
 - Upload to the currently open folder, with independent per-file progress, smoothed speed, pause, resume, and stop controls. Stop immediately removes its activity card and requests cleanup for its incomplete upload session.
@@ -24,7 +25,9 @@ It is deliberately small and self-contained. Today it is not a multi-tenant clou
 
 ### File operations and archive downloads
 
-Use the checkbox beside a file or folder to build a selection, or use **Select all** for the items currently visible in the open folder. **Download ZIP** creates one streamed archive containing the selected files and folder hierarchy, including empty folders. It skips incomplete hidden `.uploading` files and avoids duplicating a file when both it and a parent folder are selected. Individual-file download remains available for a one-file download.
+Use the checkbox beside a file or folder to build a selection, or use **Select all** for the items currently visible in the open folder. **Download ZIP** creates one streamed archive containing the selected files and folder hierarchy, including empty folders. It skips incomplete hidden `.uploading` files and avoids duplicating a file when both it and a parent folder are selected.
+
+For an individual file, **Download** first creates an opaque GET ticket scoped to that file. The ticket works for one hour, supports Range and resume, and can be captured by IDM or another download manager. It is a bearer link: anyone who receives it can download that one file until it expires. The shared workspace token is never put in the ticket URL. Tickets exist only in server memory, so a server restart invalidates them. ZIP downloads retain their protected browser form flow.
 
 Deleting one or more selected items always asks for confirmation. A confirmed deletion is permanent: selected folders are removed recursively with their contents, and there is no recycle bin, restore action, or audit trail. A folder containing an incomplete upload cannot be deleted until that upload is stopped or completed.
 
@@ -86,6 +89,7 @@ The [`deploy/`](deploy/README.md) directory contains an optional Linux systemd +
 - ZIP archives are generated as a streamed response and are not retained in `Upload/`. Keep sufficient storage for the source files and ensure the proxy does not buffer the archive response.
 - Deletion is irreversible. Back up data you need to retain; the application has no recycle bin or restore operation.
 - The browser remembers the upload token on the current device until **Log out**. Do not use this option on a shared browser profile; log out when finished.
+- A one-file download ticket is valid for one hour. Treat its URL as sensitive until it expires; it grants download access to that file only. Server restart invalidates all outstanding tickets.
 - Store uploaded files outside `wwwroot`; this project already does so.
 - Use HTTPS before exposing the service on the public Internet. The included Nginx example is HTTP-only and does not issue certificates.
 - Limit network exposure to trusted users or networks. A token is an access control, not a complete perimeter.
@@ -95,7 +99,7 @@ The [`deploy/`](deploy/README.md) directory contains an optional Linux systemd +
 The repository maintains three automated test layers:
 
 - Unit tests for token validation and file-manager storage behavior.
-- API integration tests that exercise the real ASP.NET Core routes in an isolated workspace.
+- API integration tests that exercise the real ASP.NET Core routes in an isolated workspace, including one-hour download tickets and ranged downloads.
 - Playwright UI tests in Chromium for token persistence, localization, folder creation, upload flow, one-click Stop cleanup, selected ZIP downloads, and confirmed file deletion.
 
 Run all checks locally:
@@ -128,6 +132,7 @@ Project được chủ đích giữ gọn và độc lập. Hiện tại đây c
 ### Điểm nổi bật
 
 - Duyệt không gian file, đi vào folder, tạo folder, tải file riêng lẻ hoặc nhiều file/folder đã chọn dưới dạng ZIP, xóa vĩnh viễn file/folder đã chọn sau khi xác nhận.
+- Tải một file qua GET ticket scope một file, hiệu lực một giờ. IDM có thể bắt link và dùng HTTP Range/resume mà không lộ shared token trong URL.
 - Thu gọn hoặc mở lại sidebar kiểu Explorer trên desktop; dùng cùng menu để mở hoặc đóng navigation overlay trên mobile.
 - Upload nhiều file bằng chọn file hoặc kéo-thả, gồm cả một local folder.
 - Upload vào folder đang mở; mỗi file có tiến độ, tốc độ đã làm mượt, pause, resume và stop độc lập. Stop xóa activity card ngay và yêu cầu dọn phiên upload chưa hoàn tất.
@@ -139,7 +144,9 @@ Project được chủ đích giữ gọn và độc lập. Hiện tại đây c
 
 ### Thao tác file và tải archive
 
-Dùng checkbox cạnh mỗi file/folder để chọn nhiều mục, hoặc **Chọn tất cả** các mục đang hiển thị trong folder hiện tại. **Tải ZIP** tạo một archive stream gồm file và cấu trúc folder đã chọn, kể cả folder rỗng. Archive bỏ qua file `.uploading` đang ẩn và không lặp file khi đồng thời chọn file đó cùng folder cha. Tải trực tiếp từng file vẫn khả dụng khi chỉ cần một file.
+Dùng checkbox cạnh mỗi file/folder để chọn nhiều mục, hoặc **Chọn tất cả** các mục đang hiển thị trong folder hiện tại. **Tải ZIP** tạo một archive stream gồm file và cấu trúc folder đã chọn, kể cả folder rỗng. Archive bỏ qua file `.uploading` đang ẩn và không lặp file khi đồng thời chọn file đó cùng folder cha.
+
+Với một file, nút **Tải xuống** tạo GET ticket opaque chỉ scope file đó. Ticket hiệu lực một giờ, hỗ trợ Range/resume và có thể để IDM hoặc download manager khác bắt link. Đây là bearer link: ai có URL đều tải được đúng file đó đến khi ticket hết hạn. Shared workspace token không nằm trong URL ticket. Ticket chỉ nằm trong memory của server nên server restart sẽ làm ticket hiện có mất hiệu lực. Tải ZIP vẫn giữ protected browser form flow.
 
 Xóa một hoặc nhiều mục đã chọn luôn yêu cầu xác nhận. Sau khi xác nhận, các folder được chọn sẽ bị xóa đệ quy cùng toàn bộ nội dung; thao tác là vĩnh viễn vì hiện chưa có thùng rác, khôi phục hay audit trail. Không thể xóa folder đang có upload chưa hoàn tất cho đến khi upload đó dừng hoặc hoàn tất.
 
@@ -201,6 +208,7 @@ Thư mục [`deploy/`](deploy/README.md) có cấu hình tham khảo Linux syste
 - ZIP được tạo dưới dạng response stream và không được lưu lại trong `Upload/`. Cần giữ đủ dung lượng cho các file nguồn và bảo đảm proxy không buffer response archive.
 - Xóa file/folder là không thể hoàn tác. Hãy backup dữ liệu cần giữ; ứng dụng chưa có thùng rác hoặc khôi phục.
 - Trình duyệt ghi nhớ upload token trên thiết bị hiện tại đến khi **Đăng xuất**. Không dùng trên browser profile dùng chung; hãy đăng xuất khi hoàn tất.
+- Ticket tải một file có hiệu lực một giờ. Hãy coi URL ticket là nhạy cảm đến khi hết hạn; nó chỉ cấp quyền tải file đó. Server restart làm toàn bộ ticket đang có mất hiệu lực.
 - Lưu file upload ngoài `wwwroot`; project này đã áp dụng nguyên tắc đó.
 - Dùng HTTPS trước khi public service. Nginx sample chỉ chạy HTTP và không tự cấp certificate.
 - Giới hạn truy cập mạng cho người hoặc mạng tin cậy. Token là lớp kiểm soát truy cập, không phải toàn bộ lớp phòng thủ.
@@ -210,7 +218,7 @@ Thư mục [`deploy/`](deploy/README.md) có cấu hình tham khảo Linux syste
 Repository duy trì ba tầng automated test:
 
 - Unit test cho token validation và hành vi lưu trữ của file manager.
-- API integration test chạy route ASP.NET Core thật trong workspace cô lập.
+- API integration test chạy route ASP.NET Core thật trong workspace cô lập, gồm ticket tải một giờ và tải theo range.
 - Playwright UI test trên Chromium cho lưu token, đổi ngôn ngữ, tạo folder, upload, kiểm tra Stop một lần, tải ZIP các mục đã chọn và xóa file có xác nhận.
 
 Chạy toàn bộ kiểm tra tại local:

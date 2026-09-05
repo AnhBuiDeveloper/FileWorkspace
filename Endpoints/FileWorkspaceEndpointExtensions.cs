@@ -58,6 +58,27 @@ public static class FileWorkspaceEndpointExtensions
             catch (FileManagerException exception) { return Error(exception); }
         });
 
+        endpoints.MapPost("/api/files/download-tickets", async (HttpContext context, FileManagerService files, DownloadTicketService tickets, UploadTokenValidator token) =>
+        {
+            if (!IsAuthorized(context, token)) return Results.Unauthorized();
+            var request = await context.Request.ReadFromJsonAsync<DownloadTicketRequest>(cancellationToken: context.RequestAborted);
+            if (request is null) return Error("File không tồn tại.", StatusCodes.Status400BadRequest);
+            try
+            {
+                var ticket = tickets.Create(files.GetDownload(request.Path));
+                return Results.Ok(new DownloadTicketResponse($"/api/downloads/{ticket.Value}", ticket.ExpiresAtUtc));
+            }
+            catch (FileNotFoundException) { return Error("File không tồn tại.", StatusCodes.Status404NotFound); }
+            catch (FileManagerException exception) { return Error(exception); }
+        });
+
+        endpoints.MapGet("/api/downloads/{ticket}", (string ticket, DownloadTicketService tickets) =>
+        {
+            var download = tickets.GetDownload(ticket);
+            if (download is null || !File.Exists(download.AbsolutePath)) return Results.NotFound();
+            return Results.File(download.AbsolutePath, "application/octet-stream", fileDownloadName: download.FileName, enableRangeProcessing: true);
+        });
+
         endpoints.MapPost("/api/files/archive", async (HttpContext context, FileManagerService files, UploadTokenValidator token) =>
         {
             var form = await context.Request.ReadFormAsync(context.RequestAborted);
