@@ -11,7 +11,7 @@ const copy = {
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'File của bạn', newFolder: 'Tạo folder', uploadFiles: 'Upload file', uploadFolder: 'Upload folder', refreshFiles: 'Làm mới',
     dropZoneText: 'Kéo thả file vào đây để upload vào folder hiện tại', dropZoneLabel: 'Chọn file để upload vào folder hiện tại', home: 'Upload', filesLoading: 'Đang tải nội dung…', filesEmpty: 'Folder này đang trống.', refreshFilesHint: 'Nhấn Làm mới để xem file với token hiện tại.',
     folder: 'Folder', download: 'Tải xuống', downloadSelected: 'Tải ZIP ({count})', deleteSelected: 'Xóa ({count})', deleteSelectedTitle: 'Xóa {count} mục đã chọn', selectAll: 'Chọn tất cả mục đang hiển thị', selectItem: 'Chọn {name}', downloadStarted: 'Đã bắt đầu tải file.', archiveStarted: 'Đã bắt đầu tạo ZIP.', delete: 'Xóa', deleteFile: 'Xóa file', deletePermanently: 'Xóa vĩnh viễn', deleteConfirmation: 'Xóa vĩnh viễn “{name}”? Thao tác này không thể hoàn tác.', deleteSelectionConfirmation: 'Xóa vĩnh viễn {count} mục đã chọn? Folder được chọn và toàn bộ nội dung trong đó cũng sẽ bị xóa. Thao tác này không thể hoàn tác.', fileDeleted: 'Đã xóa file.', itemsDeleted: 'Đã xóa {count} mục.', close: 'Đóng', uploadListTitle: 'Tiến trình upload',
-    folderName: 'Tên folder', cancel: 'Hủy', createFolder: 'Tạo folder', creatingFolder: 'Đang tạo…', folderCreated: 'Đã tạo folder.',
+    folderName: 'Tên folder', cancel: 'Hủy', createFolder: 'Tạo folder', creatingFolder: 'Đang tạo…', folderCreated: 'Đã tạo folder.', resumeQueueTitle: 'Upload đang chờ khôi phục', resumeQueueHint: 'Chọn lại file gốc để tiếp tục upload còn dở.', resumeFrom: 'Khôi phục', pendingUpload: 'Đang chờ khôi phục',
     states: { preparing: 'Đang chuẩn bị…', resuming: 'Đang khôi phục upload…', queued: 'Đang chờ…', uploading: 'Đang upload…', paused: 'Đã tạm dừng', stopped: 'Đã dừng', completed: 'Hoàn tất', error: 'Có lỗi' },
     buttons: { pause: 'Pause', resume: 'Resume', stop: 'Stop' },
     errors: { createSession: 'Không thể tạo phiên upload.', invalidResponse: 'Phản hồi server không hợp lệ.', connection: 'Không kết nối được server.', uploadFailed: 'Upload thất bại.', unauthorized: 'Upload token không hợp lệ hoặc đã hết quyền truy cập.', invalidFileName: 'Tên file không hợp lệ.', invalidFileSize: 'Dung lượng file không hợp lệ.', invalidFolder: 'Tên hoặc đường dẫn thư mục không hợp lệ.', folderExists: 'Tên thư mục đã tồn tại.', folderNotFound: 'Thư mục không tồn tại.', fileNotFound: 'File không tồn tại.', archiveEmpty: 'Cần chọn ít nhất một file hoặc folder.', archiveNotFound: 'File hoặc folder không tồn tại.', folderHasIncompleteUpload: 'Không thể xóa folder đang có upload chưa hoàn tất.', sessionNotFound: 'Phiên upload không tồn tại hoặc đã hết hạn.', resumeMismatch: 'File đã chọn không khớp với upload đang chờ.', invalidChunk: 'Chunk không hợp lệ.', invalidChunkSize: 'Kích thước chunk không hợp lệ.', incompleteChunk: 'Dữ liệu chunk chưa hoàn chỉnh.', downloadFailed: 'Không thể tải file.' }
@@ -22,7 +22,7 @@ const copy = {
     fileManagerKicker: 'FILE MANAGER', filesTitle: 'Your files', newFolder: 'New folder', uploadFiles: 'Upload files', uploadFolder: 'Upload folder', refreshFiles: 'Refresh',
     dropZoneText: 'Drop files here to upload them to the current folder', dropZoneLabel: 'Choose files to upload to the current folder', home: 'Upload', filesLoading: 'Loading contents…', filesEmpty: 'This folder is empty.', refreshFilesHint: 'Select Refresh to view files with the current token.',
     folder: 'Folder', download: 'Download', downloadSelected: 'Download ZIP ({count})', deleteSelected: 'Delete ({count})', deleteSelectedTitle: 'Delete {count} selected items', selectAll: 'Select all visible items', selectItem: 'Select {name}', downloadStarted: 'The download has started.', archiveStarted: 'ZIP download has started.', delete: 'Delete', deleteFile: 'Delete file', deletePermanently: 'Delete permanently', deleteConfirmation: 'Permanently delete “{name}”? This cannot be undone.', deleteSelectionConfirmation: 'Permanently delete {count} selected items? Selected folders and all their contents will also be deleted. This cannot be undone.', fileDeleted: 'File deleted.', itemsDeleted: 'Deleted {count} items.', close: 'Close', uploadListTitle: 'Upload activity',
-    folderName: 'Folder name', cancel: 'Cancel', createFolder: 'Create folder', creatingFolder: 'Creating…', folderCreated: 'Folder created.',
+    folderName: 'Folder name', cancel: 'Cancel', createFolder: 'Create folder', creatingFolder: 'Creating…', folderCreated: 'Folder created.', resumeQueueTitle: 'Uploads ready to resume', resumeQueueHint: 'Select the original local file to continue each incomplete upload.', resumeFrom: 'Resume', pendingUpload: 'Ready to resume',
     states: { preparing: 'Preparing…', resuming: 'Resuming upload…', queued: 'Queued', uploading: 'Uploading…', paused: 'Paused', stopped: 'Stopped', completed: 'Completed', error: 'Error' },
     buttons: { pause: 'Pause', resume: 'Resume', stop: 'Stop' },
     errors: { createSession: 'Could not create the upload session.', invalidResponse: 'The server returned an invalid response.', connection: 'Could not connect to the server.', uploadFailed: 'Upload failed.', unauthorized: 'The upload token is invalid or no longer has access.', invalidFileName: 'The file name is invalid.', invalidFileSize: 'The file size is invalid.', invalidFolder: 'The folder name or path is invalid.', folderExists: 'A folder with this name already exists.', folderNotFound: 'The folder does not exist.', fileNotFound: 'The file does not exist.', archiveEmpty: 'Select at least one file or folder.', archiveNotFound: 'The file or folder does not exist.', folderHasIncompleteUpload: 'A folder with an incomplete upload cannot be deleted.', sessionNotFound: 'The upload session does not exist or has expired.', resumeMismatch: 'The selected file does not match the pending upload.', invalidChunk: 'The upload chunk is invalid.', invalidChunkSize: 'The upload chunk size is invalid.', incompleteChunk: 'The upload chunk is incomplete.', downloadFailed: 'Could not download the file.' }
@@ -46,6 +46,8 @@ const breadcrumbs = document.querySelector('#breadcrumbs');
 const uploadPanel = document.querySelector('#upload-panel');
 const uploadList = document.querySelector('#upload-list');
 const uploadCount = document.querySelector('#upload-count');
+const resumePanel = document.createElement('section');
+const resumeQueue = document.createElement('div');
 const status = document.querySelector('#status');
 const folderDialog = document.querySelector('#create-folder-dialog');
 const folderForm = document.querySelector('#create-folder-form');
@@ -83,12 +85,25 @@ const expandedTreePaths = new Set(['']);
 const newFilePaths = new Set();
 const selectedPaths = new Set();
 let pendingDelete;
+let pendingResumeRecord;
+
+resumePanel.id = 'resume-panel';
+resumePanel.className = 'upload-panel';
+resumePanel.hidden = true;
+resumePanel.setAttribute('aria-live', 'polite');
+resumePanel.append(resumeQueue);
+uploadPanel.before(resumePanel);
 
 function getResumeRecords() {
   try {
     const records = JSON.parse(localStorage.getItem(RESUME_STORAGE_KEY) || '[]');
-    return Array.isArray(records) ? records : [];
+    return Array.isArray(records) ? records.filter(isResumeRecord) : [];
   } catch { return []; }
+}
+
+function isResumeRecord(record) {
+  return record && typeof record.uploadId === 'string' && typeof record.name === 'string' &&
+    Number.isFinite(record.size) && record.size >= 0 && typeof record.targetPath === 'string';
 }
 
 function saveResumeRecord(record) {
@@ -103,6 +118,50 @@ function removeResumeRecord(uploadId) {
 
 function findResumeRecord(file, targetPath) {
   return getResumeRecords().find(record => record.name === file.name && record.size === file.size && record.targetPath === targetPath);
+}
+
+function saveResumeProgress(record, uploadedBytes) {
+  saveResumeRecord({ ...record, uploadedBytes: Math.min(record.size, Math.max(0, uploadedBytes)) });
+  renderResumeQueue();
+}
+
+function getPendingResumeRecords() {
+  return getResumeRecords().filter(record => !uploads.some(upload => upload.uploadId === record.uploadId));
+}
+
+function renderResumeQueue() {
+  const records = tokenInput.value.trim() ? getPendingResumeRecords() : [];
+  resumeQueue.replaceChildren();
+  resumePanel.hidden = records.length === 0;
+  if (!records.length) return;
+
+  const heading = document.createElement('div'); heading.className = 'upload-heading';
+  const title = document.createElement('h2'); title.textContent = t('resumeQueueTitle');
+  const hint = document.createElement('span'); hint.className = 'stats'; hint.textContent = t('resumeQueueHint'); hint.style.textAlign = 'end';
+  heading.append(title, hint); resumeQueue.append(heading);
+  const list = document.createElement('div'); list.className = 'upload-list';
+  records.forEach(record => {
+    const uploadedBytes = Math.min(record.size, Math.max(0, Number(record.uploadedBytes) || 0));
+    const percent = record.size ? Math.min(99, Math.floor((uploadedBytes / record.size) * 100)) : 100;
+    const item = document.createElement('article'); item.className = 'upload-item paused';
+    const header = document.createElement('div'); header.className = 'file-line';
+    const name = document.createElement('strong'); name.textContent = record.name; name.title = record.name;
+    const state = document.createElement('span'); state.className = 'upload-state'; state.textContent = t('pendingUpload');
+    header.append(name, state);
+    const destination = document.createElement('div'); destination.className = 'upload-destination'; destination.textContent = `/${record.targetPath || t('home')}`;
+    const progress = document.createElement('div'); progress.className = 'bar'; progress.setAttribute('role', 'progressbar'); progress.setAttribute('aria-valuemin', '0'); progress.setAttribute('aria-valuemax', '100'); progress.setAttribute('aria-valuenow', String(percent));
+    const fill = document.createElement('div'); fill.style.width = `${percent}%`; progress.append(fill);
+    const footer = document.createElement('div'); footer.className = 'upload-footer';
+    const stats = document.createElement('span'); stats.className = 'stats'; stats.textContent = `${formatBytes(uploadedBytes)} / ${formatBytes(record.size)} · ${percent}%`;
+    const action = button(t('resumeFrom'), 'primary', () => selectResumeFile(record)); action.dataset.uploadId = record.uploadId;
+    footer.append(stats, action); item.append(header, destination, progress, footer); list.append(item);
+  });
+  resumeQueue.append(list);
+}
+
+function selectResumeFile(record) {
+  pendingResumeRecord = record;
+  fileInput.click();
 }
 
 const storedLanguage = localStorage.getItem('file-workspace-language') ?? localStorage.getItem('file-upload-language');
@@ -131,7 +190,7 @@ languageSelect.addEventListener('change', () => {
 });
 logoutButton.addEventListener('click', logout);
 refreshFilesButton.addEventListener('click', () => loadFiles());
-document.querySelectorAll('[data-upload-trigger], #upload-files').forEach(element => element.addEventListener('click', () => fileInput.click()));
+document.querySelectorAll('[data-upload-trigger], #upload-files').forEach(element => element.addEventListener('click', () => { pendingResumeRecord = undefined; fileInput.click(); }));
 uploadFolderButton.addEventListener('click', () => folderInput.click());
 newFolderButton.addEventListener('click', openFolderDialog);
 downloadSelectionButton.addEventListener('click', downloadSelection);
@@ -159,7 +218,12 @@ closeDeleteFileDialogButton.addEventListener('click', () => deleteFileDialog.clo
 cancelDeleteFileButton.addEventListener('click', () => deleteFileDialog.close());
 deleteFileDialog.addEventListener('close', () => { pendingDelete = undefined; confirmDeleteFileButton.disabled = false; });
 deleteFileForm.addEventListener('submit', confirmDeleteFile);
-fileInput.addEventListener('change', () => { addFiles(fileInput.files, false); fileInput.value = ''; });
+fileInput.addEventListener('change', () => {
+  const resumeRecord = pendingResumeRecord;
+  pendingResumeRecord = undefined;
+  addFiles(fileInput.files, false, resumeRecord);
+  fileInput.value = '';
+});
 folderInput.addEventListener('change', () => { addFiles(folderInput.files, true); folderInput.value = ''; });
 
 ['dragenter', 'dragover'].forEach(event => dropZone.addEventListener(event, e => {
@@ -171,27 +235,32 @@ folderInput.addEventListener('change', () => { addFiles(folderInput.files, true)
   dropZone.classList.remove('dragging');
 }));
 dropZone.addEventListener('drop', e => addFiles(e.dataTransfer.files, false));
-dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('click', () => { pendingResumeRecord = undefined; fileInput.click(); });
 dropZone.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pendingResumeRecord = undefined; fileInput.click(); }
 });
 
-function addFiles(fileList, preserveFolderStructure) {
+function addFiles(fileList, preserveFolderStructure, resumeRecord) {
   const files = [...fileList].filter(file => file instanceof File);
   const token = tokenInput.value.trim();
   if (!files.length) return;
   if (!token) { setStatus(t('tokenRequired'), 'error'); tokenInput.focus(); return; }
+  if (resumeRecord && (files.length !== 1 || files[0].name !== resumeRecord.name || files[0].size !== resumeRecord.size)) {
+    setStatus(t('errors.resumeMismatch'), 'error');
+    return;
+  }
 
   setStatus('', '');
-  files.forEach(file => {
+  (resumeRecord ? [files[0]] : files).forEach(file => {
     const localPath = preserveFolderStructure ? file.webkitRelativePath : '';
     const localFolder = localPath.includes('/') ? localPath.split('/').slice(0, -1).join('/') : '';
-    const destinationPath = joinPath(currentPath, localFolder);
-    const upload = new UploadTask(file, token, destinationPath, findResumeRecord(file, destinationPath));
+    const destinationPath = resumeRecord?.targetPath ?? joinPath(currentPath, localFolder);
+    const upload = new UploadTask(file, token, destinationPath, resumeRecord ?? findResumeRecord(file, destinationPath));
     uploads.push(upload);
     upload.render();
     upload.initialize();
   });
+  renderResumeQueue();
   updateUploadCount();
 }
 
@@ -241,8 +310,9 @@ class UploadTask {
       if (this.state === 'stopped') { await this.deleteSession(); return; }
       if (data.completed) this.complete();
       else {
-        this.resumeRecord = { uploadId: this.uploadId, name: this.file.name, size: this.file.size, targetPath: this.targetPath };
+        this.resumeRecord = { uploadId: this.uploadId, name: this.file.name, size: this.file.size, targetPath: this.targetPath, uploadedBytes: this.uploadedBytes };
         saveResumeRecord(this.resumeRecord);
+        renderResumeQueue();
         this.state = this.state === 'paused' ? 'paused' : 'queued'; scheduleUploads();
       }
     } catch (error) {
@@ -261,6 +331,7 @@ class UploadTask {
         if (this.state !== 'uploading') break;
         this.uploadedBytes = result.uploadedBytes;
         this.nextChunk += 1;
+        saveResumeProgress(this.resumeRecord, this.uploadedBytes);
         if (result.completed || this.nextChunk === this.totalChunks) {
           this.complete();
         }
@@ -309,14 +380,15 @@ class UploadTask {
   resetSpeed() { this.speed = 0; this.speedSamples = []; }
 
   pause() { if (!['preparing', 'resuming', 'queued', 'uploading'].includes(this.state)) return; this.state = 'paused'; this.resetSpeed(); this.xhr?.abort(); this.render(); updateUploadCount(); }
-  resume() { if (this.state !== 'paused') return; this.state = this.uploadId ? 'queued' : 'preparing'; this.error = ''; this.render(); scheduleUploads(); }
-  async stop() { if (['stopped', 'completed'].includes(this.state)) return; this.state = 'stopped'; this.resetSpeed(); this.xhr?.abort(); removeResumeRecord(this.uploadId); this.remove(); await this.deleteSession(); }
+  resume() { if (!['paused', 'error'].includes(this.state)) return; this.state = this.uploadId ? 'queued' : 'preparing'; this.error = ''; this.render(); scheduleUploads(); }
+  async stop() { if (['stopped', 'completed'].includes(this.state)) return; this.state = 'stopped'; this.resetSpeed(); this.xhr?.abort(); removeResumeRecord(this.uploadId); this.remove(); renderResumeQueue(); await this.deleteSession(); }
   async deleteSession() { if (!this.uploadId) return; try { await fetch(`/api/uploads/${this.uploadId}`, { method: 'DELETE', headers: { 'X-Upload-Token': this.token } }); } catch { /* local state is already stopped */ } }
 
   complete() {
     if (this.state === 'completed') return;
     this.state = 'completed'; this.uploadedBytes = this.file.size; this.resetSpeed();
     removeResumeRecord(this.uploadId);
+    renderResumeQueue();
     newFilePaths.add(joinPath(this.targetPath, this.file.name));
     if (currentPath === this.targetPath) loadFiles();
     window.setTimeout(() => this.remove(), 0);
@@ -325,7 +397,7 @@ class UploadTask {
   remove() {
     const index = uploads.indexOf(this);
     if (index >= 0) uploads.splice(index, 1);
-    this.element?.remove(); updateUploadCount();
+    this.element?.remove(); renderResumeQueue(); updateUploadCount();
   }
 
   render(displayedBytes = this.uploadedBytes) {
@@ -340,7 +412,7 @@ class UploadTask {
       this.controlsElement.replaceChildren();
       if (['preparing', 'resuming', 'queued', 'uploading'].includes(this.state)) this.controlsElement.append(button(t('buttons.pause'), 'secondary', () => this.pause()), button(t('buttons.stop'), 'danger', () => this.stop()));
       else if (this.state === 'paused') this.controlsElement.append(button(t('buttons.resume'), 'primary', () => this.resume()), button(t('buttons.stop'), 'danger', () => this.stop()));
-      else if (this.state === 'error') this.controlsElement.append(button(t('buttons.stop'), 'danger', () => this.stop()));
+      else if (this.state === 'error') this.controlsElement.append(button(t('buttons.resume'), 'primary', () => this.resume()), button(t('buttons.stop'), 'danger', () => this.stop()));
       this.renderedState = this.state; this.renderedLanguage = currentLanguage;
     }
   }
@@ -611,8 +683,9 @@ function logout() {
 
 function updateAuthControls() {
   const token = tokenInput.value.trim(); logoutButton.hidden = !token; filesPanel.hidden = !token; authPanel.hidden = !!token;
-  if (!token) { filesList.replaceChildren(); filesStatus.textContent = ''; breadcrumbs.replaceChildren(); folderTree.replaceChildren(); return; }
+  if (!token) { filesList.replaceChildren(); filesStatus.textContent = ''; breadcrumbs.replaceChildren(); folderTree.replaceChildren(); renderResumeQueue(); return; }
   if (listedToken !== token) { entries = []; filesList.replaceChildren(); filesStatus.textContent = t('refreshFilesHint'); }
+  renderResumeQueue();
 }
 
 function updateUploadCount() {
@@ -629,7 +702,7 @@ function applyLanguage() {
   document.querySelectorAll('[data-i18n-aria-label]').forEach(element => { element.setAttribute('aria-label', t(element.dataset.i18nAriaLabel)); });
   updateDeleteDialogCopy();
   languageSelect.setAttribute('aria-label', t('languageLabel')); filesPanel.setAttribute('aria-label', t('filesTitle')); uploadPanel.setAttribute('aria-label', t('uploadListTitle')); updateSidebarToggle();
-  uploads.forEach(upload => upload.render()); renderFileManager(); renderFolderTree(); updateUploadCount(); updateSelectionControls();
+  uploads.forEach(upload => upload.render()); renderResumeQueue(); renderFileManager(); renderFolderTree(); updateUploadCount(); updateSelectionControls();
 }
 
 function button(label, className, onClick, title = '') { const element = document.createElement('button'); element.type = 'button'; element.className = `button ${className}`; element.textContent = label; if (title) element.title = title; element.addEventListener('click', onClick); return element; }
