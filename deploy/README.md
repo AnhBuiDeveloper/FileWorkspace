@@ -25,6 +25,8 @@ Trước khi dùng, sửa các giá trị hard-code trong `file-workspace.servic
 
 Copy `.env.example` thành `.env` trong thư mục deploy và thay token. Đặt quyền đọc file token chỉ cho service account. Nginx sample chỉ phục vụ HTTP; tự cấu hình certificate/HTTPS theo domain và nhà cung cấp của bạn.
 
+App đọc header `X-Forwarded-For`/`X-Forwarded-Proto` để biết đúng IP và scheme thật của client (cần cho rate limit theo IP và HSTS hoạt động đúng phía sau proxy). Nginx sample sẵn có đã set cả hai; nếu dùng reverse proxy khác, nhớ set tương ứng.
+
 ## English
 
 The files in this directory are Linux deployment examples for the self-hosted file manager using systemd and Nginx. They do not limit where the application can be hosted. You can run it on Windows, any Linux distribution/CPU architecture supported by ASP.NET Core Runtime 10, a container, VM, bare metal, or a cloud platform.
@@ -47,3 +49,5 @@ Before using it, replace the hard-coded values in `file-workspace.service` and `
 - `server_name _`: your domain name.
 
 Copy `.env.example` to `.env` in the deployment directory and replace the token. Limit token-file read access to the service account. The Nginx example only serves HTTP; configure a certificate and HTTPS for your own domain/provider.
+
+The app reads `X-Forwarded-For`/`X-Forwarded-Proto` to learn the real client IP and scheme (needed for per-IP rate limiting and HSTS to work correctly behind a proxy). The included Nginx sample already sets both; if you use a different reverse proxy, set them there too.
