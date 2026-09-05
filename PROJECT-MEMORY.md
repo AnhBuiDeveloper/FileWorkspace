@@ -19,8 +19,9 @@ This document is the durable engineering context for File Workspace, a self-host
 | Configuration/ | Local development environment-file loading. |
 | Endpoints/ | HTTP routes, authentication boundary, request parsing, and HTTP responses. |
 | Services/UploadTokenValidator | Constant-time upload-token comparison. |
-| Services/FileManagerService | Upload sessions/chunks, safe paths, folders, file listing, direct downloads, streamed ZIP archive sources, permanent selected file/folder deletion, and disk persistence. |
+| Services/FileManagerService | Persistent upload sessions/chunks, safe paths, folders, file listing, direct downloads, streamed ZIP archive sources, permanent selected file/folder deletion, and disk persistence. |
 | Services/DownloadTicketService | One-file, opaque, in-memory download tickets for download-manager-compatible GET requests. |
+| Services/UploadCleanupHostedService | Hourly cleanup of expired incomplete upload sessions. |
 | Models/ | API request/response contracts and upload protocol constants. |
 | wwwroot/ | Browser-only presentation and interaction. |
 
@@ -40,6 +41,7 @@ This document is the durable engineering context for File Workspace, a self-host
 - ZIP downloads must be generated as streamed responses; never persist temporary archives in `Upload/`. Archive sources must be existing validated paths, preserve the selected folder structure (including empty folders), omit incomplete `.uploading` files, and avoid duplicate entries when selections overlap.
 - Selected-file/folder deletion is permanent in the current product. Keep an explicit client confirmation in an accessible, localized application modal before the protected delete request; selected folders delete recursively. Validate every selection before mutation, deduplicate overlapping parent/child selections, and reject a folder containing an incomplete upload. Never use browser-native `alert()`, `confirm()`, or `prompt()` dialogs. Do not imply a recycle bin, restore, or audit capability.
 - Upload activity is browser-local. Stop must synchronously cancel the active client transfer, remove its task/card from browser state, and request server-side session cleanup. A stopped task must never reappear because a later upload starts. During progress rendering, preserve interactive controls instead of recreating them, so pointer and keyboard actions are reliable.
+- Incomplete uploads persist a hidden, server-side manifest and temporary file for seven days. The browser stores only non-secret name, size, destination-path, and upload-id metadata. After reload, browser close, server restart, or deployment, resume requires the user to select the same local file in its original destination folder; validate the persisted session, name, size, and destination before resuming. Stop deletes both temporary data and metadata. Expired or orphaned temporary uploads are cleaned at startup and hourly; legacy orphan `.uploading` files without a manifest cannot be resumed.
 - A direct-download ticket is a random bearer URL scoped to one existing validated file. It expires after one hour, supports HTTP range requests, and never contains the shared upload token. Tickets are in memory, so they become invalid when the server restarts; do not extend their scope, lifetime, or persistence without explicit approval.
 
 ### Automated quality guardrails
@@ -65,8 +67,9 @@ This document is the durable engineering context for File Workspace, a self-host
 | Configuration/ | Nạp file môi trường local. |
 | Endpoints/ | HTTP route, ranh giới xác thực, parse request và HTTP response. |
 | Services/UploadTokenValidator | So sánh upload token theo constant-time. |
-| Services/FileManagerService | Upload session/chunk, path an toàn, folder, list file, tải trực tiếp, nguồn ZIP stream, xóa vĩnh viễn file/folder đã chọn và ghi ổ đĩa. |
+| Services/FileManagerService | Upload session/chunk persistent, path an toàn, folder, list file, tải trực tiếp, nguồn ZIP stream, xóa vĩnh viễn file/folder đã chọn và ghi ổ đĩa. |
 | Services/DownloadTicketService | Ticket tải xuống opaque, lưu trong bộ nhớ, scope một file cho GET tương thích download manager. |
+| Services/UploadCleanupHostedService | Dọn upload chưa hoàn tất đã hết hạn theo giờ. |
 | Models/ | Contract request/response API và hằng số upload protocol. |
 | wwwroot/ | Presentation và interaction chỉ chạy trên browser. |
 
@@ -86,6 +89,7 @@ This document is the durable engineering context for File Workspace, a self-host
 - Tải ZIP phải tạo bằng response stream; không lưu archive tạm trong `Upload/`. Nguồn archive phải là path tồn tại đã validate, giữ cấu trúc folder được chọn (kể cả folder rỗng), bỏ file `.uploading` chưa hoàn tất và tránh entry trùng khi các mục chọn chồng lấn.
 - Xóa file/folder đã chọn hiện là vĩnh viễn. Giữ xác nhận rõ ràng trong modal do ứng dụng sở hữu, có accessibility và bản địa hóa trước protected delete request; folder được chọn bị xóa đệ quy. Validate toàn bộ selection trước khi mutate, loại selection cha/con chồng lấn và từ chối folder có upload chưa hoàn tất. Không dùng browser-native `alert()`, `confirm()` hoặc `prompt()`. Không ngụ ý có thùng rác, khôi phục hoặc audit.
 - Upload activity chỉ tồn tại ở browser. Stop phải hủy client transfer đang chạy, xóa task/card khỏi browser state ngay và yêu cầu server dọn session. Task đã dừng không được xuất hiện lại vì upload mới bắt đầu. Khi render progress, phải giữ interactive control thay vì tạo lại để thao tác chuột và bàn phím ổn định.
+- Upload chưa hoàn tất lưu manifest server-side ẩn cùng file tạm trong bảy ngày. Browser chỉ lưu metadata không bí mật gồm tên, dung lượng, đường dẫn đích và upload-id. Sau reload, đóng browser, restart server hoặc deploy, user phải chọn lại cùng local file trong đúng folder đích để resume; phải validate session persistent, tên, dung lượng và folder đích trước khi tiếp tục. Stop xóa cả dữ liệu tạm lẫn metadata. Upload tạm hết hạn hoặc mồ côi được dọn lúc startup và mỗi giờ; file `.uploading` mồ côi từ phiên bản cũ không có manifest không thể resume.
 - Ticket tải trực tiếp là URL bearer ngẫu nhiên chỉ scope một file đã được validate. Ticket hết hạn sau một giờ, hỗ trợ HTTP range request và không bao giờ chứa shared upload token. Ticket nằm trong memory nên mất hiệu lực khi server restart; không được mở rộng scope, thời hạn hoặc persistence nếu chưa có phê duyệt rõ ràng.
 
 ### Guardrail chất lượng tự động

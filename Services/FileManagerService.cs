@@ -2,25 +2,37 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.IO.Compression;
 using System.Security.Cryptography;
+using System.Text.Json;
 using FileWorkspace.Models;
 
 namespace FileWorkspace.Services;
 
 public sealed class FileManagerService
 {
+    private static readonly TimeSpan IncompleteUploadRetention = TimeSpan.FromDays(7);
     private readonly string _rootPath;
+    private readonly TimeProvider _timeProvider;
     private readonly ConcurrentDictionary<string, UploadSession> _sessions = new();
     private readonly ConcurrentDictionary<string, byte> _reservedPaths = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _fileNameLock = new();
 
     public FileManagerService(IHostEnvironment environment)
+        : this(environment, TimeProvider.System)
+    {
+    }
+
+    public FileManagerService(IHostEnvironment environment, TimeProvider timeProvider)
     {
         _rootPath = Path.GetFullPath(Path.Combine(environment.ContentRootPath, "Upload"));
+        _timeProvider = timeProvider;
         Directory.CreateDirectory(_rootPath);
+        CleanupExpiredUploads();
+        RestoreActiveReservations();
     }
 
     public async Task<UploadStartResponse> StartUploadAsync(string encodedFileName, string encodedTargetFolder, long totalBytes, CancellationToken cancellationToken)
     {
+        CleanupExpiredUploads();
         if (totalBytes < 0) throw BadRequest("Dung lượng file không hợp lệ.");
         var fileName = GetSafeFileName(encodedFileName) ?? throw BadRequest("Tên file không hợp lệ.");
         var targetFolder = NormalizeRelativePath(encodedTargetFolder) ?? throw BadRequest("Thư mục đích không hợp lệ.");
@@ -44,7 +56,8 @@ public sealed class FileManagerService
                 return new UploadStartResponse(sessionId, UploadProtocol.ChunkSize, true, 0, storedName);
             }
 
-            var session = new UploadSession(sessionId, storedName, destinationDirectory, reservationKey, temporaryPath, totalBytes, totalChunks);
+            var session = new UploadSession(sessionId, storedName, targetFolder, destinationDirectory, reservationKey, temporaryPath, GetSessionManifestPath(sessionId), totalBytes, totalChunks, lastUpdatedUtc: _timeProvider.GetUtcNow().UtcDateTime);
+            await PersistSessionAsync(session, cancellationToken);
             if (!_sessions.TryAdd(sessionId, session)) throw new InvalidOperationException("Không thể tạo phiên upload.");
             return new UploadStartResponse(sessionId, UploadProtocol.ChunkSize, false, 0);
         }
@@ -52,8 +65,33 @@ public sealed class FileManagerService
         {
             _reservedPaths.TryRemove(reservationKey, out _);
             if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
+            DeleteSessionManifest(sessionId);
             throw;
         }
+    }
+
+    public async Task<UploadStartResponse> ResumeUploadAsync(string uploadId, string encodedFileName, string encodedTargetFolder, long totalBytes, CancellationToken cancellationToken)
+    {
+        var session = GetSession(uploadId);
+        var fileName = GetSafeFileName(encodedFileName) ?? throw BadRequest("Tên file không hợp lệ.");
+        var targetFolder = NormalizeRelativePath(encodedTargetFolder) ?? throw BadRequest("Thư mục đích không hợp lệ.");
+        if (session.StoredName != fileName || session.TargetFolder != targetFolder || session.TotalBytes != totalBytes)
+            throw Conflict("Thông tin file khôi phục không khớp.");
+
+        await session.Gate.WaitAsync(cancellationToken);
+        try
+        {
+            if (!File.Exists(session.TemporaryPath))
+            {
+                DeleteSession(session);
+                throw NotFound("Phiên upload không tồn tại hoặc đã kết thúc.");
+            }
+
+            session.Touch(_timeProvider.GetUtcNow().UtcDateTime);
+            await PersistSessionAsync(session, cancellationToken);
+            return new UploadStartResponse(session.Id, UploadProtocol.ChunkSize, false, session.UploadedBytes, null, session.NextChunk);
+        }
+        finally { session.Gate.Release(); }
     }
 
     public async Task<UploadChunkResponse> WriteChunkAsync(string uploadId, int chunkIndex, long? contentLength, Stream requestBody, CancellationToken cancellationToken)
@@ -77,11 +115,15 @@ public sealed class FileManagerService
 
             session.ReceivedChunks[chunkIndex] = true;
             session.UploadedBytes += expectedLength;
-            if (!session.ReceivedChunks.All(received => received)) return new UploadChunkResponse(session.UploadedBytes, false);
+            session.Touch(_timeProvider.GetUtcNow().UtcDateTime);
+            if (!session.ReceivedChunks.All(received => received))
+            {
+                await PersistSessionAsync(session, cancellationToken);
+                return new UploadChunkResponse(session.UploadedBytes, false);
+            }
 
             File.Move(session.TemporaryPath, Path.Combine(session.DestinationDirectory, session.StoredName));
-            _sessions.TryRemove(session.Id, out _);
-            _reservedPaths.TryRemove(session.ReservationKey, out _);
+            DeleteSession(session);
             return new UploadChunkResponse(session.UploadedBytes, true, session.StoredName);
         }
         finally
@@ -92,12 +134,13 @@ public sealed class FileManagerService
 
     public async Task CancelUploadAsync(string uploadId)
     {
-        if (!_sessions.TryRemove(uploadId, out var session)) return;
+        if (!TryGetSession(uploadId, out var session)) return;
+        _sessions.TryRemove(uploadId, out _);
         await session.Gate.WaitAsync();
         try
         {
             if (File.Exists(session.TemporaryPath)) File.Delete(session.TemporaryPath);
-            _reservedPaths.TryRemove(session.ReservationKey, out _);
+            DeleteSession(session);
         }
         finally { session.Gate.Release(); }
     }
@@ -109,11 +152,12 @@ public sealed class FileManagerService
         if (directory is null || !Directory.Exists(directory)) throw NotFound("Thư mục không tồn tại.");
 
         var folders = Directory.EnumerateDirectories(directory)
+            .Where(path => !IsUploadInternalFile(Path.GetFileName(path)))
             .Select(path => new DirectoryInfo(path))
             .Select(folder => new FileManagerEntry(folder.Name, "folder", null, folder.LastWriteTimeUtc));
         var files = Directory.EnumerateFiles(directory)
             .Select(path => new FileInfo(path))
-            .Where(file => !IsTemporaryUpload(file.Name))
+            .Where(file => !IsUploadInternalFile(file.Name))
             .Select(file => new FileManagerEntry(file.Name, "file", file.Length, file.LastWriteTimeUtc));
         var entries = folders.Concat(files)
             .OrderBy(entry => entry.Type == "folder" ? 0 : 1)
@@ -134,7 +178,7 @@ public sealed class FileManagerService
     public DownloadDescriptor GetDownload(string encodedPath)
     {
         var relativePath = NormalizeRelativePath(encodedPath);
-        if (string.IsNullOrEmpty(relativePath) || IsTemporaryUpload(Path.GetFileName(relativePath))) throw NotFound("File không tồn tại.");
+        if (string.IsNullOrEmpty(relativePath) || IsUploadInternalFile(Path.GetFileName(relativePath))) throw NotFound("File không tồn tại.");
         var filePath = ResolvePath(relativePath);
         if (filePath is null || !File.Exists(filePath)) throw NotFound("File không tồn tại.");
         return new DownloadDescriptor(filePath, Path.GetFileName(filePath));
@@ -150,7 +194,7 @@ public sealed class FileManagerService
         foreach (var encodedPath in paths)
         {
             var relativePath = NormalizeRelativePath(encodedPath);
-            if (string.IsNullOrEmpty(relativePath) || IsTemporaryUpload(Path.GetFileName(relativePath))) throw NotFound("File hoặc folder không tồn tại.");
+            if (string.IsNullOrEmpty(relativePath) || IsUploadInternalFile(Path.GetFileName(relativePath))) throw NotFound("File hoặc folder không tồn tại.");
             var absolutePath = ResolvePath(relativePath);
             if (absolutePath is null) throw BadRequest("Đường dẫn file hoặc folder không hợp lệ.");
 
@@ -179,7 +223,7 @@ public sealed class FileManagerService
     public void DeleteFile(string encodedPath)
     {
         var relativePath = NormalizeRelativePath(encodedPath);
-        if (string.IsNullOrEmpty(relativePath) || IsTemporaryUpload(Path.GetFileName(relativePath))) throw NotFound("File không tồn tại.");
+        if (string.IsNullOrEmpty(relativePath) || IsUploadInternalFile(Path.GetFileName(relativePath))) throw NotFound("File không tồn tại.");
         var filePath = ResolvePath(relativePath);
         if (filePath is null || !File.Exists(filePath)) throw NotFound("File không tồn tại.");
         File.Delete(filePath);
@@ -195,7 +239,147 @@ public sealed class FileManagerService
         }
     }
 
-    private UploadSession GetSession(string uploadId) => _sessions.TryGetValue(uploadId, out var session) ? session : throw NotFound("Phiên upload không tồn tại hoặc đã kết thúc.");
+    public void CleanupExpiredUploads()
+    {
+        var cutoff = _timeProvider.GetUtcNow().UtcDateTime - IncompleteUploadRetention;
+        foreach (var manifestPath in Directory.EnumerateFiles(_rootPath, ".upload-session-*.json", SearchOption.TopDirectoryOnly))
+        {
+            var session = ReadPersistedSession(manifestPath);
+            if (session is null || session.LastUpdatedUtc <= cutoff || !File.Exists(GetTemporaryPath(session)))
+            {
+                if (session is not null)
+                {
+                    _sessions.TryRemove(session.Id, out _);
+                    DeletePersistedFiles(session);
+                }
+                else if (File.GetLastWriteTimeUtc(manifestPath) <= cutoff) File.Delete(manifestPath);
+            }
+        }
+
+        foreach (var temporaryPath in Directory.EnumerateFiles(_rootPath, "*", SearchOption.AllDirectories).Where(path => IsTemporaryUpload(Path.GetFileName(path))))
+            if (File.GetLastWriteTimeUtc(temporaryPath) <= cutoff) File.Delete(temporaryPath);
+
+        foreach (var temporaryManifestPath in Directory.EnumerateFiles(_rootPath, ".upload-session-*.tmp", SearchOption.TopDirectoryOnly))
+            if (File.GetLastWriteTimeUtc(temporaryManifestPath) <= cutoff) File.Delete(temporaryManifestPath);
+    }
+
+    private UploadSession GetSession(string uploadId)
+    {
+        if (TryGetSession(uploadId, out var session)) return session;
+        throw NotFound("Phiên upload không tồn tại hoặc đã kết thúc.");
+    }
+
+    private bool TryGetSession(string uploadId, out UploadSession session)
+    {
+        if (!IsValidUploadId(uploadId))
+        {
+            session = null!;
+            return false;
+        }
+        if (_sessions.TryGetValue(uploadId, out session!)) return true;
+
+        var persisted = ReadPersistedSession(GetSessionManifestPath(uploadId));
+        if (persisted is null || persisted.Id != uploadId || IsExpired(persisted) || !File.Exists(GetTemporaryPath(persisted)))
+        {
+            if (persisted is not null) DeletePersistedFiles(persisted);
+            session = null!;
+            return false;
+        }
+
+        var restored = CreateSession(persisted);
+        if (restored is null)
+        {
+            DeletePersistedFiles(persisted);
+            session = null!;
+            return false;
+        }
+
+        _reservedPaths.TryAdd(restored.ReservationKey, 0);
+        session = _sessions.GetOrAdd(uploadId, restored);
+        return true;
+    }
+
+    private void RestoreActiveReservations()
+    {
+        foreach (var manifestPath in Directory.EnumerateFiles(_rootPath, ".upload-session-*.json", SearchOption.TopDirectoryOnly))
+        {
+            var persisted = ReadPersistedSession(manifestPath);
+            var session = persisted is null || IsExpired(persisted) ? null : CreateSession(persisted);
+            if (session is null)
+            {
+                if (persisted is not null) DeletePersistedFiles(persisted);
+                continue;
+            }
+            _reservedPaths.TryAdd(session.ReservationKey, 0);
+        }
+    }
+
+    private UploadSession? CreateSession(PersistedUploadSession persisted)
+    {
+        if (!IsValidUploadId(persisted.Id) || GetSafeFileName(persisted.StoredName) != persisted.StoredName || NormalizeRelativePath(persisted.TargetFolder) != persisted.TargetFolder || persisted.TotalBytes < 0 || persisted.TotalChunks < 1 || persisted.ReceivedChunks.Length != persisted.TotalChunks)
+            return null;
+        var destinationDirectory = ResolvePath(persisted.TargetFolder);
+        var temporaryPath = GetTemporaryPath(persisted);
+        if (destinationDirectory is null || temporaryPath is null || !File.Exists(temporaryPath)) return null;
+        var expectedChunks = checked((int)((persisted.TotalBytes + UploadProtocol.ChunkSize - 1) / UploadProtocol.ChunkSize));
+        if (expectedChunks != persisted.TotalChunks) return null;
+        var reservationKey = Path.Combine(destinationDirectory, persisted.StoredName);
+        return new UploadSession(persisted.Id, persisted.StoredName, persisted.TargetFolder, destinationDirectory, reservationKey, temporaryPath, GetSessionManifestPath(persisted.Id), persisted.TotalBytes, persisted.TotalChunks, persisted.ReceivedChunks, persisted.LastUpdatedUtc);
+    }
+
+    private async Task PersistSessionAsync(UploadSession session, CancellationToken cancellationToken)
+    {
+        var temporaryManifestPath = Path.Combine(_rootPath, $".upload-session-{session.Id}.{Convert.ToHexString(RandomNumberGenerator.GetBytes(8)).ToLowerInvariant()}.tmp");
+        var persisted = new PersistedUploadSession(session.Id, session.StoredName, session.TargetFolder, session.TotalBytes, session.TotalChunks, session.ReceivedChunks, session.LastUpdatedUtc);
+        try
+        {
+            await File.WriteAllTextAsync(temporaryManifestPath, JsonSerializer.Serialize(persisted), cancellationToken);
+            File.Move(temporaryManifestPath, session.ManifestPath, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temporaryManifestPath)) File.Delete(temporaryManifestPath);
+        }
+    }
+
+    private PersistedUploadSession? ReadPersistedSession(string manifestPath)
+    {
+        try { return File.Exists(manifestPath) ? JsonSerializer.Deserialize<PersistedUploadSession>(File.ReadAllText(manifestPath)) : null; }
+        catch (JsonException) { return null; }
+        catch (IOException) { return null; }
+    }
+
+    private void DeleteSession(UploadSession session)
+    {
+        _sessions.TryRemove(session.Id, out _);
+        _reservedPaths.TryRemove(session.ReservationKey, out _);
+        DeleteSessionManifest(session.Id);
+    }
+
+    private void DeletePersistedFiles(PersistedUploadSession session)
+    {
+        var temporaryPath = GetTemporaryPath(session);
+        if (temporaryPath is not null && File.Exists(temporaryPath)) File.Delete(temporaryPath);
+        var destinationDirectory = ResolvePath(session.TargetFolder);
+        if (destinationDirectory is not null) _reservedPaths.TryRemove(Path.Combine(destinationDirectory, session.StoredName), out _);
+        DeleteSessionManifest(session.Id);
+    }
+
+    private void DeleteSessionManifest(string uploadId)
+    {
+        if (!IsValidUploadId(uploadId)) return;
+        var manifestPath = GetSessionManifestPath(uploadId);
+        if (File.Exists(manifestPath)) File.Delete(manifestPath);
+    }
+
+    private bool IsExpired(PersistedUploadSession session) => session.LastUpdatedUtc <= _timeProvider.GetUtcNow().UtcDateTime - IncompleteUploadRetention;
+    private string GetSessionManifestPath(string uploadId) => Path.Combine(_rootPath, $".upload-session-{uploadId}.json");
+    private string? GetTemporaryPath(PersistedUploadSession session)
+    {
+        var destinationDirectory = ResolvePath(session.TargetFolder);
+        return destinationDirectory is null ? null : Path.Combine(destinationDirectory, $".{session.Id}.uploading");
+    }
+    private static bool IsValidUploadId(string uploadId) => uploadId.Length == 32 && uploadId.All(Uri.IsHexDigit);
 
     private string ReserveUniqueFileName(string directory, string requestedName, out string reservationKey)
     {
@@ -219,7 +403,7 @@ public sealed class FileManagerService
         foreach (var directory in Directory.EnumerateDirectories(directoryPath, "*", SearchOption.AllDirectories))
             AddArchiveSource(directory, true, sources, entryNames);
         foreach (var file in Directory.EnumerateFiles(directoryPath, "*", SearchOption.AllDirectories))
-            if (!IsTemporaryUpload(Path.GetFileName(file))) AddArchiveSource(file, false, sources, entryNames);
+            if (!IsUploadInternalFile(Path.GetFileName(file))) AddArchiveSource(file, false, sources, entryNames);
     }
 
     private void AddArchiveSource(string absolutePath, bool isDirectory, List<ArchiveSource> sources, HashSet<string> entryNames)
@@ -236,7 +420,7 @@ public sealed class FileManagerService
         foreach (var encodedPath in encodedPaths.Where(path => !string.IsNullOrWhiteSpace(path)))
         {
             var relativePath = NormalizeRelativePath(encodedPath);
-            if (string.IsNullOrEmpty(relativePath) || IsTemporaryUpload(Path.GetFileName(relativePath))) throw NotFound("File hoặc folder không tồn tại.");
+            if (string.IsNullOrEmpty(relativePath) || IsUploadInternalFile(Path.GetFileName(relativePath))) throw NotFound("File hoặc folder không tồn tại.");
             if (!relativePaths.Add(relativePath)) continue;
 
             var absolutePath = ResolvePath(relativePath);
@@ -244,7 +428,7 @@ public sealed class FileManagerService
             if (File.Exists(absolutePath)) targets.Add(new DeletionTarget(absolutePath, false));
             else if (Directory.Exists(absolutePath))
             {
-                if (Directory.EnumerateFiles(absolutePath, "*", SearchOption.AllDirectories).Any(path => IsTemporaryUpload(Path.GetFileName(path))))
+                if (Directory.EnumerateFiles(absolutePath, "*", SearchOption.AllDirectories).Any(path => IsUploadInternalFile(Path.GetFileName(path))))
                     throw Conflict("Không thể xóa folder đang có upload chưa hoàn tất.");
                 targets.Add(new DeletionTarget(absolutePath, true));
             }
@@ -297,6 +481,7 @@ public sealed class FileManagerService
     }
 
     private static bool IsTemporaryUpload(string fileName) => fileName.StartsWith(".", StringComparison.Ordinal) && fileName.EndsWith(".uploading", StringComparison.OrdinalIgnoreCase);
+    private static bool IsUploadInternalFile(string fileName) => IsTemporaryUpload(fileName) || fileName.StartsWith(".upload-session-", StringComparison.Ordinal);
     private static string JoinPath(string left, string right) => string.IsNullOrEmpty(left) ? right : $"{left}/{right}";
     private static FileManagerException BadRequest(string message) => new(message, StatusCodes.Status400BadRequest);
     private static FileManagerException NotFound(string message) => new(message, StatusCodes.Status404NotFound);
@@ -320,20 +505,39 @@ public sealed class FileManagerService
         finally { ArrayPool<byte>.Shared.Return(buffer); }
     }
 
-    private sealed class UploadSession(string id, string storedName, string destinationDirectory, string reservationKey, string temporaryPath, long totalBytes, int totalChunks)
+    private sealed class UploadSession(string id, string storedName, string targetFolder, string destinationDirectory, string reservationKey, string temporaryPath, string manifestPath, long totalBytes, int totalChunks, bool[]? receivedChunks = null, DateTime? lastUpdatedUtc = null)
     {
         public string Id { get; } = id;
         public string StoredName { get; } = storedName;
+        public string TargetFolder { get; } = targetFolder;
         public string DestinationDirectory { get; } = destinationDirectory;
         public string ReservationKey { get; } = reservationKey;
         public string TemporaryPath { get; } = temporaryPath;
+        public string ManifestPath { get; } = manifestPath;
         public long TotalBytes { get; } = totalBytes;
         public int TotalChunks { get; } = totalChunks;
-        public bool[] ReceivedChunks { get; } = new bool[totalChunks];
-        public long UploadedBytes { get; set; }
+        public bool[] ReceivedChunks { get; } = receivedChunks ?? new bool[totalChunks];
+        public long UploadedBytes { get; set; } = CalculateUploadedBytes(receivedChunks, totalBytes);
+        public DateTime LastUpdatedUtc { get; private set; } = lastUpdatedUtc ?? DateTime.UtcNow;
         public SemaphoreSlim Gate { get; } = new(1, 1);
         public long GetChunkLength(int chunkIndex) => Math.Min(UploadProtocol.ChunkSize, TotalBytes - (long)chunkIndex * UploadProtocol.ChunkSize);
+        public int NextChunk
+        {
+            get
+            {
+                var index = Array.FindIndex(ReceivedChunks, received => !received);
+                return index >= 0 ? index : TotalChunks;
+            }
+        }
+        public void Touch(DateTime updatedAtUtc) => LastUpdatedUtc = updatedAtUtc;
+
+        private static long CalculateUploadedBytes(bool[]? receivedChunks, long totalBytes)
+        {
+            if (receivedChunks is null) return 0;
+            return receivedChunks.Select((received, index) => received ? Math.Min(UploadProtocol.ChunkSize, totalBytes - (long)index * UploadProtocol.ChunkSize) : 0).Sum();
+        }
     }
 
+    private sealed record PersistedUploadSession(string Id, string StoredName, string TargetFolder, long TotalBytes, int TotalChunks, bool[] ReceivedChunks, DateTime LastUpdatedUtc);
     private sealed record DeletionTarget(string AbsolutePath, bool IsDirectory);
 }

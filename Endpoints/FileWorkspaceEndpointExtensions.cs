@@ -32,6 +32,18 @@ public static class FileWorkspaceEndpointExtensions
             catch (FileManagerException exception) { return Error(exception); }
         });
 
+        endpoints.MapPost("/api/uploads/{uploadId}/resume", async (HttpContext context, string uploadId, FileManagerService files, UploadTokenValidator token) =>
+        {
+            if (!IsAuthorized(context, token)) return Results.Unauthorized();
+            if (!long.TryParse(context.Request.Headers["X-File-Size"], out var size)) return Error("Dung lượng file không hợp lệ.", StatusCodes.Status400BadRequest);
+            try
+            {
+                var result = await files.ResumeUploadAsync(uploadId, context.Request.Headers["X-File-Name"].ToString(), context.Request.Headers["X-Target-Folder"].ToString(), size, context.RequestAborted);
+                return Results.Ok(result);
+            }
+            catch (FileManagerException exception) { return Error(exception); }
+        });
+
         endpoints.MapDelete("/api/uploads/{uploadId}", async (HttpContext context, string uploadId, FileManagerService files, UploadTokenValidator token) =>
         {
             if (!IsAuthorized(context, token)) return Results.Unauthorized();

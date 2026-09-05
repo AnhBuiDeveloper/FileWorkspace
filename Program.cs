@@ -12,6 +12,7 @@ builder.Services.AddSingleton<UploadTokenValidator>();
 builder.Services.AddSingleton<FileManagerService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<DownloadTicketService>();
+builder.Services.AddHostedService<UploadCleanupHostedService>();
 
 var app = builder.Build();
 
